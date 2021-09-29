@@ -2,10 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2eac454-2c87-47c8-9c83-c28c3d24c17e" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/logos/settings/base.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +37,7 @@
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
@@ -82,7 +85,11 @@
       <option name="presentableId" value="Default" />
       <updated>1632667770699</updated>
       <workItem from="1632667771734" duration="4051000" />
-      <workItem from="1632673258861" duration="1142000" />
+      <workItem from="1632673258861" duration="1876000" />
+      <workItem from="1632676379430" duration="1000000" />
+      <workItem from="1632753477519" duration="90000" />
+      <workItem from="1632931382931" duration="373000" />
+      <workItem from="1632931949744" duration="449000" />
     </task>
     <servers />
   </component>
@@ -90,6 +97,10 @@
     <option name="version" value="3" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="1080" y="582" key="#Scopes" timestamp="1632676307999">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="1080" y="582" key="#Scopes/-1792.320.1792.1120/0.0.2560.1440@0.0.2560.1440" timestamp="1632676307999" />
     <state x="666" y="112" key="SettingsEditor" timestamp="1632673918142">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
@@ -98,5 +109,9 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="1086" y="638" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/-1792.320.1792.1120/0.0.2560.1440@0.0.2560.1440" timestamp="1632673432455" />
+    <state x="354" y="375" width="1227" height="648" key="find.popup" timestamp="1632932378671">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="354" y="375" width="1227" height="648" key="find.popup/-1792.320.1792.1120/0.0.2560.1440@0.0.2560.1440" timestamp="1632932378671" />
   </component>
 </project>

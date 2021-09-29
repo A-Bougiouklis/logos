@@ -1,3 +1,0 @@
-Django==3.2.6                     # Web application framework
-neo4django                        # Neo4j adapter for django
-
