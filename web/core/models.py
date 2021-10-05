@@ -74,5 +74,5 @@ class SetRel(StructuredRel):
 class EntitySet(SemiStructuredNode):
     name = StringProperty(unique_index=True, required=True)
 
-    token = RelationshipFrom("Token", "NAME", model=TokenToSetRel)
+    token = RelationshipTo("Token", "NAME", model=TokenToSetRel)
     parent = RelationshipTo("EntitySet", "PARENT", model=SetRel)
