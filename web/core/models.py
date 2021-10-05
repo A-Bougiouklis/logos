@@ -37,6 +37,7 @@ class TokenRel(StructuredRel):
 
 class Token(StructuredNode):
     token = StringProperty(unique_index=True, required=True)
+    shape = StringProperty()
 
     dependency = RelationshipTo('Token', 'DEPENDENCY', model=TokenRel)
     sentence = RelationshipTo('Token', "SENTENCE", model=TokenRel)
@@ -47,8 +48,9 @@ class Token(StructuredNode):
         super().__init__(*args, **kwargs)
 
     def save(self):
-        super().save()
         doc = nlp(self.token)[0]
+        self.shape = doc.shape_
+        super().save()
         entity = Entity(lemma=doc.lemma_, pos=[doc.pos_], shape=doc.shape_)
         entity.save()
         self.lemma.connect(entity)
