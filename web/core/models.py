@@ -11,9 +11,11 @@ from neomodel import (
     FloatProperty,
 )
 from neomodel.contrib import SemiStructuredNode
+import spacy
 
 config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
 
+nlp = spacy.load("en_core_web_sm")
 
 class EntityRel(StructuredRel):
     confidence = FloatProperty()
@@ -21,15 +23,16 @@ class EntityRel(StructuredRel):
 
 class Entity(StructuredNode):
     lemma = StringProperty(unique_index=True, required=True)
-    pos = ArrayProperty(StringProperty, required=True)
+    pos = ArrayProperty(StringProperty(), required=True)
     shape = StringProperty(required=True)
 
-    synosym = Relationship("Lemma", "SYNONYM", model=EntityRel)
-    antonym = Relationship("Lemma", "ANTONYM", model=EntityRel)
+    synosym = Relationship("Entity", "SYNONYM", model=EntityRel)
+    antonym = Relationship("Entity", "ANTONYM", model=EntityRel)
 
 
 class TokenRel(StructuredRel):
-    something = StringProperty()
+    sentence_id = IntegerProperty()
+    order = IntegerProperty()
 
 
 class Token(StructuredNode):
@@ -39,8 +42,20 @@ class Token(StructuredNode):
     aux = RelationshipTo('Token', 'AUX', model=TokenRel)
     xcomp = RelationshipTo('Token', 'XCOMP', model=TokenRel)
     acomp = RelationshipTo('Token', 'ACOMP', model=TokenRel)
+    sentence = RelationshipTo('Token', "SENTENCE", model=TokenRel)
 
-    lemma = RelationshipTo(Entity, "Lemma")
+    lemma = RelationshipTo(Entity, "LEMMA")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        super().save()
+        doc = nlp(self.token)[0]
+        entity = Entity(lemma=doc.lemma_, pos=[doc.pos_], shape=doc.shape_)
+        entity.save()
+        self.lemma.connect(entity)
+        return self
 
 
 class TokenToSetRel(StructuredRel):
@@ -60,5 +75,5 @@ class SetRel(StructuredRel):
 class EntitySet(SemiStructuredNode):
     name = StringProperty(unique_index=True, required=True)
 
-    token = RelationshipFrom('Token', 'INCLUDES_TOKEN', model=TokenToSetRel)
-    parent = RelationshipTo("Set", "HAS_PARENT`", model=SetRel)
+    token = RelationshipFrom("Token", "INCLUDES_TOKEN", model=TokenToSetRel)
+    parent = RelationshipTo("EntitySet", "HAS_PARENT", model=SetRel)
