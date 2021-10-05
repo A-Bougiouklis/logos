@@ -39,8 +39,8 @@ class Token(StructuredNode):
     token = StringProperty(unique_index=True, required=True)
     shape = StringProperty()
 
-    dependency = RelationshipTo('Token', 'DEPENDENCY', model=TokenRel)
-    sentence = RelationshipTo('Token', "SENTENCE", model=TokenRel)
+    dependency = RelationshipTo("Token", "DEPENDENCY", model=TokenRel)
+    sentence = RelationshipTo("Token", "SENTENCE", model=TokenRel)
 
     lemma = RelationshipTo(Entity, "LEMMA")
 
@@ -74,5 +74,5 @@ class SetRel(StructuredRel):
 class EntitySet(SemiStructuredNode):
     name = StringProperty(unique_index=True, required=True)
 
-    token = RelationshipFrom("Token", "INCLUDES_TOKEN", model=TokenToSetRel)
-    parent = RelationshipTo("EntitySet", "HAS_PARENT", model=SetRel)
+    token = RelationshipFrom("Token", "NAME", model=TokenToSetRel)
+    parent = RelationshipTo("EntitySet", "PARENT", model=SetRel)
