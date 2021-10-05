@@ -16,12 +16,12 @@ def create_coded_nodes():
     becoming = Token(token="becoming").save()
     tall = Token(token="tall").save()
 
-    when.sentence.connect(did, {"sentence_id": 0, "order": 1})
-    did.sentence.connect(andreas, {"sentence_id": 0, "order": 2})
-    andreas.sentence.connect(bougiouklis, {"sentence_id": 0, "order": 3})
-    bougiouklis.sentence.connect(start, {"sentence_id": 0, "order": 4})
-    start.sentence.connect(becoming, {"sentence_id": 0, "order": 5})
-    becoming.sentence.connect(tall, {"sentence_id": 0, "order": 6})
+    when.sentence.connect(did, {"document_id": 0, "sentence_id": 0, "order": 1})
+    did.sentence.connect(andreas, {"document_id": 0, "sentence_id": 0, "order": 2})
+    andreas.sentence.connect(bougiouklis, {"document_id": 0, "sentence_id": 0, "order": 3})
+    bougiouklis.sentence.connect(start, {"document_id": 0, "sentence_id": 0, "order": 4})
+    start.sentence.connect(becoming, {"document_id": 0, "sentence_id": 0, "order": 5})
+    becoming.sentence.connect(tall, {"document_id": 0, "sentence_id": 0, "order": 6})
 
     when.dependency.connect(did, {"dependency": "acomp"})
     start.dependency.connect(andreas, {"dependency": "nsbuj"})
