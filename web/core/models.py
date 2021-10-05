@@ -33,6 +33,7 @@ class Entity(StructuredNode):
 class TokenRel(StructuredRel):
     dependency = StringProperty()
     sentence_id = IntegerProperty()
+    document_id = IntegerProperty()
     order = IntegerProperty()
 
 class Token(StructuredNode):
