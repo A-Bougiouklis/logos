@@ -31,17 +31,14 @@ class Entity(StructuredNode):
 
 
 class TokenRel(StructuredRel):
+    dependency = StringProperty()
     sentence_id = IntegerProperty()
     order = IntegerProperty()
-
 
 class Token(StructuredNode):
     token = StringProperty(unique_index=True, required=True)
 
-    nsbuj = RelationshipTo('Token', 'NSUBJ', model=TokenRel)
-    aux = RelationshipTo('Token', 'AUX', model=TokenRel)
-    xcomp = RelationshipTo('Token', 'XCOMP', model=TokenRel)
-    acomp = RelationshipTo('Token', 'ACOMP', model=TokenRel)
+    dependency = RelationshipTo('Token', 'DEPENDENCY', model=TokenRel)
     sentence = RelationshipTo('Token', "SENTENCE", model=TokenRel)
 
     lemma = RelationshipTo(Entity, "LEMMA")

@@ -24,12 +24,12 @@ def create_coded_nodes():
     start.sentence.connect(becoming, {"sentence_id": 0, "order": 5})
     becoming.sentence.connect(tall, {"sentence_id": 0, "order": 6})
 
-    when.acomp.connect(did)
-    start.nsbuj.connect(andreas)
-    start.aux.connect(did)
-    start.xcomp.connect(becoming)
-    becoming.acomp.connect(tall)
-    andreas.acomp.connect(bougiouklis)
+    when.dependency.connect(did, {"dependency": "acomp"})
+    start.dependency.connect(andreas, {"dependency": "nsbuj"})
+    start.dependency.connect(did, {"dependency": "aux"})
+    start.dependency.connect(becoming, {"dependency": "xcomp"})
+    becoming.dependency.connect(tall, {"dependency": "acomp"})
+    andreas.dependency.connect(bougiouklis, {"dependency": "acomp"})
 
     andreas_group = EntitySet(name="Andreas").save()
     andreas_bougiouklis_group = EntitySet(name="Andreas Bougiouklis").save()
