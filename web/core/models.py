@@ -67,7 +67,7 @@ class TokenToSetRel(StructuredRel):
     order = IntegerProperty()
 
 
-class SetRel(StructuredRel):
+class EntitySetRel(StructuredRel):
     confidence = FloatProperty()
 
 
@@ -75,4 +75,4 @@ class EntitySet(SemiStructuredNode):
     name = StringProperty(unique_index=True, required=True)
 
     token = RelationshipTo("Token", "NAME", model=TokenToSetRel)
-    parent = RelationshipTo("EntitySet", "PARENT", model=SetRel)
+    parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
