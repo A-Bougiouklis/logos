@@ -5,13 +5,16 @@ from neomodel import (
     IntegerProperty,
     RelationshipTo,
     Relationship,
-    RelationshipFrom,
     StructuredRel,
     ArrayProperty,
     FloatProperty,
+    NodeSet,
 )
+from neomodel.util import classproperty
 from neomodel.contrib import SemiStructuredNode
 import spacy
+from neomodel import db
+
 
 config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
 
@@ -36,6 +39,18 @@ class TokenRel(StructuredRel):
     document_id = IntegerProperty()
     order = IntegerProperty()
 
+class TokenNodeSet(NodeSet):
+
+    @classproperty
+    def max_document_id(cls) -> int:
+        results, _ = db.cypher_query(
+            "MATCH (t:Token)-[r:SENTENCE]-(t2:Token)"
+            "return r.document_id "
+            "order by r.document_id DESC limit 1"
+        )
+        return results[0][0] if results else 0
+
+
 class Token(StructuredNode):
     token = StringProperty(unique_index=True, required=True)
     shape = StringProperty()
@@ -47,6 +62,10 @@ class Token(StructuredNode):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @classproperty
+    def nodes(cls):
+        return TokenNodeSet(cls)
 
     def save(self):
         doc = nlp(self.token)[0]

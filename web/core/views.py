@@ -7,8 +7,8 @@ def home(request):
 def create_coded_nodes():
 
     delete_old_nodes()
-
     when = Token(token="When").save()
+
     andreas = Token(token="Andreas").save()
     bougiouklis = Token(token="Bougiouklis").save()
     start = Token(token="start").save()
@@ -20,7 +20,7 @@ def create_coded_nodes():
     did.sentence.connect(andreas, {"document_id": 0, "sentence_id": 0, "order": 2})
     andreas.sentence.connect(bougiouklis, {"document_id": 0, "sentence_id": 0, "order": 3})
     bougiouklis.sentence.connect(start, {"document_id": 0, "sentence_id": 0, "order": 4})
-    start.sentence.connect(becoming, {"document_id": 0, "sentence_id": 0, "order": 5})
+    start.sentence.connect(becoming, {"document_id": 1, "sentence_id": 0, "order": 5})
     becoming.sentence.connect(tall, {"document_id": 0, "sentence_id": 0, "order": 6})
 
     when.dependency.connect(did, {"dependency": "acomp"})
@@ -38,7 +38,8 @@ def create_coded_nodes():
     andreas_bougiouklis_group.token.connect(andreas, {"order": 0})
     andreas_bougiouklis_group.token.connect(bougiouklis, {"order": 1})
 
-    return HttpResponse(f"Hello")
+
+    return HttpResponse(f"Hello {Token.nodes.max_document_id}")
 
 
 def delete_old_nodes():
