@@ -41,14 +41,22 @@ class TokenRel(StructuredRel):
 
 class TokenNodeSet(NodeSet):
 
-    @classproperty
-    def max_document_id(cls) -> int:
+    @classmethod
+    def max_sentence_relationship_property(cls, property_name: str) -> int:
         results, _ = db.cypher_query(
-            "MATCH (t:Token)-[r:SENTENCE]-(t2:Token)"
-            "return r.document_id "
-            "order by r.document_id DESC limit 1"
+            f"MATCH (t:Token)-[r:SENTENCE]-(t2:Token) "
+            f"return r.{property_name} "
+            f"order by r.{property_name} DESC limit 1"
         )
         return results[0][0] if results else 0
+
+    @classproperty
+    def max_document_id(cls) -> int:
+        return cls.max_sentence_relationship_property("document_id")
+
+    @classproperty
+    def max_sentence_id(cls) -> int:
+        return cls.max_sentence_relationship_property("sentence_id")
 
 
 class Token(StructuredNode):
