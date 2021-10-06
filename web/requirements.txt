@@ -1,7 +1,7 @@
-neomodel>=4.0.2
-pytz>=2020.1
-django>=2.2
-pytest-django>=3.10.0
+neomodel == 4.0.6
+pytz == 2021.3
+django == 3.2.8
+pytest-django == 4.4.0
 django-neomodel == 0.0.6
 
 spacy==3.1.1                      # NLP development tool

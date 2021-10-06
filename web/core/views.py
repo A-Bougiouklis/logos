@@ -38,7 +38,6 @@ def create_coded_nodes():
     andreas_bougiouklis_group.token.connect(andreas, {"order": 0})
     andreas_bougiouklis_group.token.connect(bougiouklis, {"order": 1})
 
-
     return HttpResponse(f"Hello {Token.nodes.max_document_id}")
 
 

@@ -1,8 +1,9 @@
-FROM python:3
+FROM python:3.9-slim-buster
+
 WORKDIR /usr/src/app/web
 COPY ./web/requirements.txt ./
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt  && rm -rf /root/.cache/pip
 RUN python -m spacy download en_core_web_sm
 
 COPY .. .

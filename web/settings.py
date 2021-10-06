@@ -15,7 +15,6 @@ ALLOWED_HOSTS = ["localhost", "0.0.0.0"]
 
 AUTOCOMMIT = True
 
-
 DATABASES = {
     'default': {
         'NAME': 'web.db',
@@ -59,6 +58,7 @@ INSTALLED_APPS = [
     # Third party
     'django_neomodel',
 
+    # Custom
     'web.core',
 ]
 
@@ -72,4 +72,3 @@ MIDDLEWARE = [
 
 STATIC_ROOT = "./static/"
 STATIC_URL = '/static/'
-
