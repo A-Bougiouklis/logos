@@ -76,12 +76,12 @@ class Token(StructuredNode):
         return TokenNodeSet(cls)
 
     def save(self):
-        doc = nlp(self.token)[0]
-        self.shape = doc.shape_
+        # doc = nlp(self.token)[0]
+        # self.shape = doc.shape_
         super().save()
-        entity = Entity(lemma=doc.lemma_, pos=[doc.pos_], shape=doc.shape_)
-        entity.save()
-        self.lemma.connect(entity)
+        # entity = Entity(lemma=doc.lemma_, pos=[doc.pos_], shape=doc.shape_)
+        # entity.save()
+        # self.lemma.connect(entity)
         return self
 
 
