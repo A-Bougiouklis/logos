@@ -8,6 +8,7 @@ def chunking(sent: Span) -> list[list[Span, Span, Span]]:
     chunks = []
     verb_chunks = __verb_chunks(sent)
 
+    # pairs the correct noun and verb chunks together
     for noun_chunk in __noun_chunks(sent):
         for verb_index, verb_chunk in enumerate(verb_chunks):
             if noun_chunk.root.head in verb_chunk:
