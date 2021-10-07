@@ -14,7 +14,3 @@ class AtomicityTestClass(TestCase):
         when = Token(token="When").save()
         when.sentence.connect(did, {"document_id": 5, "sentence_id": 5, "order": 1})
         Token(token="example", shape="foo").save()
-        # q = Token.nodes.get_or_none(token="example")
-        #
-        # print("HELLO ", q, " !")
-        document_analysis("This is a sentence. This is another sentence.")

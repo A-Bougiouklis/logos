@@ -21,6 +21,7 @@ services:
       - DJANGO_SUPERUSER_PASSWORD
       - DJANGO_SUPERUSER_EMAIL
       - DJANGO_SUPERUSER_USERNAME
+      - PYTHONUNBUFFERED=1 # To print into terminal logs.
 
   neo4j_db:
     image: neo4j:4.2-enterprise
