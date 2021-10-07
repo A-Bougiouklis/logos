@@ -12,7 +12,7 @@ nlp = spacy.load('en_core_web_sm')
 def sentence_analysis(
         sent: Span, doc_id: int, sent_id: int, cached_nodes: dict[str, Token]
 ) -> dict[str, Token]:
-    # cached_nodes = dependence_sentence_graph(sent, doc_id, sent_id, cached_nodes)
+    cached_nodes = dependence_sentence_graph(sent, doc_id, sent_id, cached_nodes)
     chunking(sent)
     return cached_nodes
 
