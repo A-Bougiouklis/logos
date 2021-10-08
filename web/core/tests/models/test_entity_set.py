@@ -35,6 +35,10 @@ class EntitySetTests(TestCase):
             dog_entity_set = EntitySet.nodes.get(name="The big dog")
             self.assertEqual("The big dog", dog_entity_set.name)
 
+        with self.subTest("gets_entity_set_if_already_exits"):
+            existing_dog_entity_set = EntitySet.get_or_create(doc[0:3])
+            self.assertEqual(existing_dog_entity_set, dog_entity_set)
+
         with self.subTest("creates_root_entity_set"):
             root_entity_set = EntitySet.nodes.get(name="dog")
             self.assertEqual("dog", root_entity_set.name)

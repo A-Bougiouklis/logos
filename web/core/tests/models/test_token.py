@@ -1,25 +1,63 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
+from web.core.models import db, Entity, Token
+from web.core.analysis.nlp_models import nlp
 
-from web.core.models import Token
-from neomodel import db
+
+class TokenTests(TestCase):
+
+    def setUp(self):
+        clear_neo4j_database(db)
+
+    def test_get_or_create(self):
+        doc = nlp("The big dog")
+
+        Token.get_or_create(doc[2])
+
+        with self.subTest("creates_token"):
+            dog_token = Token.nodes.get(token="dog")
+            self.assertEqual("dog", dog_token.token)
+
+        with self.subTest("gets_token_if_already_exits"):
+            existing_dog_token = Token.get_or_create(doc[2])
+            self.assertEqual(existing_dog_token, dog_token)
+
+        with self.subTest("creates_entity"):
+            dog_entity = Entity.nodes.get(lemma="dog")
+            self.assertEqual("dog", dog_entity.lemma)
+            self.assertEqual(["xxx"], dog_entity.shape)
+            self.assertEqual(["NOUN"], dog_entity.pos)
+
+        with self.subTest("relationship_between_token_and_entity"):
+            self.assertIsNotNone(dog_token.lemma.relationship(dog_entity))
 
 
 class TokenNodeSetTests(TestCase):
 
     def setUp(self):
         clear_neo4j_database(db)
+        self.t1 = Token(token="the").save()
+        self.t2 = Token(token="big").save()
+        self.t3 = Token(token="dog").save()
 
-    def test_max_document_id_with_no_ralationships_with_document_id_properties(self):
-        self.assertEqual(0, Token.nodes.max_document_id)
+    def set_sentence_relationships(self):
+        self.t1.sentence.connect(self.t2, {"document_id": 0, "sentence_id": 0})
+        self.t1.sentence.connect(self.t3, {"document_id": 0, "sentence_id": 1})
+        self.t3.sentence.connect(self.t2, {"document_id": 1, "sentence_id": 2})
 
-    def test_max_document_id_when_relationships_with_document_id_properties_exist(self):
-        token_0 = Token(token="example_0").save()
-        token_1 = Token(token="example_1").save()
-        token_2 = Token(token="example_2").save()
+    def test_max_document_id(self):
 
-        token_0.sentence.connect(token_1, {"document_id": 0})
-        token_1.sentence.connect(token_2, {"document_id": 1})
-        token_2.sentence.connect(token_0, {"document_id": 2})
+        with self.subTest("is_0_with_no_document_id"):
+            self.assertEqual(0, Token.nodes.max_document_id)
 
-        self.assertEqual(2, Token.nodes.max_document_id)
+        with self.subTest("max_document_id_otherwise"):
+            self.set_sentence_relationships()
+            self.assertEqual(1, Token.nodes.max_document_id)
+
+    def test_max_sentence_id(self):
+        with self.subTest("is_0_with_no_sentence_id"):
+            self.assertEqual(0, Token.nodes.max_sentence_id)
+
+        with self.subTest("max_sentence_id_otherwise"):
+            self.set_sentence_relationships()
+            self.assertEqual(2, Token.nodes.max_sentence_id)
