@@ -5,6 +5,7 @@ from web.core.analysis.chunking import chunking
 from web.core.analysis.token_graph import dependence_sentence_graph
 from web.core.analysis.nlp_models import nlp
 
+
 def document_analysis(document: str):
 
     doc_id = Token.nodes.max_document_id + 1

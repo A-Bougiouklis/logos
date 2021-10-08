@@ -1,16 +1,12 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
-from neomodel import config
-from web.core.models import db, Token
-from web.core.analysis import document_analysis
-from time import sleep
-from subprocess import call
-from django.test.runner import DiscoverRunner
 
+from web.core.models import *
+from web.core.analysis import document_analysis
 
 class AtomicityTestClass(TestCase):
 
-    def setUp(self) -> None:
+    def setUp(self):
         clear_neo4j_database(db)
 
     def test_create_object(self):

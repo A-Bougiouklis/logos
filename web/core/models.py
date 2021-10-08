@@ -1,5 +1,4 @@
 from neomodel import (
-    config,
     StructuredNode,
     StringProperty,
     IntegerProperty,
@@ -16,9 +15,6 @@ from neomodel import db
 from spacy.tokens import Token as spacy_token
 from spacy.tokens.span import Span as spacy_span
 from typing import Union
-
-
-config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
 
 
 class EntityRel(StructuredRel):
