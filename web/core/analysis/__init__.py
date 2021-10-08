@@ -1,18 +1,28 @@
-import spacy
-
 from web.core.models import Token
-from .sentence_to_nodes import sentence_analysis
+from spacy.tokens.doc import Doc as spacy_doc
 
-nlp = spacy.load("en_core_web_sm")
+from web.core.analysis.chunking import chunking
+from web.core.analysis.token_graph import dependence_sentence_graph
+from web.core.analysis.nlp_models import nlp
 
 def document_analysis(document: str):
 
-    document_id = Token.nodes.max_document_id + 1
-    sentence_id = Token.nodes.max_sentence_id + 1
+    doc_id = Token.nodes.max_document_id + 1
+    sen_id = Token.nodes.max_sentence_id + 1
 
     cached_nodes = {}
-    print()
+
     doc = nlp(document)
     for sent in doc.sents:
-        cached_nodes = sentence_analysis(sent, document_id, sentence_id, cached_nodes)
-        sentence_id += 1
+        # We convert the sentence to a doc to remove any index connection between the
+        # tokens and the original doc
+        cached_nodes = sentence_analysis(sent.as_doc(), doc_id, sen_id, cached_nodes)
+        sen_id += 1
+
+
+def sentence_analysis(
+        sent: spacy_doc, doc_id: int, sent_id: int, cached_nodes: dict[str, Token]
+) -> dict[str, Token]:
+    cached_nodes = dependence_sentence_graph(sent, doc_id, sent_id, cached_nodes)
+    chunking(sent)
+    return cached_nodes

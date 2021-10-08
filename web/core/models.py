@@ -14,6 +14,8 @@ from neomodel.util import classproperty
 from neomodel.contrib import SemiStructuredNode
 from neomodel import db
 from spacy.tokens import Token as spacy_token
+from spacy.tokens.span import Span as spacy_span
+from typing import Union
 
 
 config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
@@ -124,3 +126,38 @@ class EntitySet(SemiStructuredNode):
 
     token = RelationshipTo("Token", "NAME", model=TokenToSetRel)
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
+
+    @classmethod
+    def get_or_create(cls, noun_chunk: Union[spacy_span, spacy_token]):
+
+        entity_set_node = cls.nodes.filter(name=noun_chunk.text)
+
+        if not entity_set_node:
+            entity_set_node = cls(name=noun_chunk.text).save()
+
+            if isinstance(noun_chunk, spacy_span) and noun_chunk.text != noun_chunk.root.text:
+                root_entity_set_node = cls.get_or_create(noun_chunk.root).save()
+                entity_set_node.parent.connect(root_entity_set_node)
+
+        else:
+            entity_set_node = entity_set_node[0]
+
+        # Creat the relationships between entitySet and token
+        try:
+            for index, token in enumerate(noun_chunk):
+                token_node = Token.get_or_create(token)
+                entity_set_node.token.connect(token_node, {"order": index})
+        # TypeError: if isinstance(noun_chunk, spacy_token) noun_chunk is not iterable
+        except TypeError:
+            token_node = Token.get_or_create(noun_chunk)
+            entity_set_node.token.connect(token_node, {"order": 0})
+
+        return entity_set_node
+
+    def set_property(self, name: str, value: str):
+        if hasattr(self, name):
+            property = set(getattr(self, name))
+            property.add(value)
+            setattr(self, name, list(property))
+        else:
+            setattr(self, name, [value])
