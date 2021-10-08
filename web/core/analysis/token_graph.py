@@ -4,7 +4,7 @@ from spacy.tokens.doc import Doc as spcay_doc
 from web.core.models import Token
 
 
-def dependence_sentence_graph(
+def dependency_sentence_graph(
     sent: spcay_doc, doc_id: int, sent_id: int, cached_nodes: dict[str, Token]
 ) -> dict[str, Token]:
     """
@@ -18,9 +18,11 @@ def dependence_sentence_graph(
         token_node, cached_nodes = get_token_node(token, cached_nodes)
         head_node, cached_nodes = get_token_node(token.head, cached_nodes)
 
+        # Connect dependency relationship
         if token != token.head:
             token_node.dependency.connect(head_node, {"dependency": str(token.dep_)})
 
+        # Connect sentence relationship
         if next_token := sent[index + 1] if index < len(sent) - 1 else None:
             next_token_node, cached_nodes = get_token_node(next_token, cached_nodes)
             token_node.sentence.connect(
