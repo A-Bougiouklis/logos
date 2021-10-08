@@ -16,7 +16,7 @@ def document_analysis(document: str):
     doc = nlp(document)
     for sent in doc.sents:
         # We convert the sentence to a doc to remove any index connection between the
-        # tokens and the original doc
+        # tokens and the original doc.
         cached_nodes = sentence_analysis(sent.as_doc(), doc_id, sen_id, cached_nodes)
         sen_id += 1
 

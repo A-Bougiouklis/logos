@@ -15,10 +15,13 @@ def chunking(sent: Doc) -> list[list[Span, Span, Span]]:
 
 
 def find_chunks(sent: Doc) -> list[list[Span, Span, Span]]:
+    """
+    Pairs the correct noun, verb chunks and adjective_chunk together
+    """
+
     chunks = []
     verb_chunks = __verb_chunks(sent)
 
-    # pairs the correct noun, verb chunks and adjective_chunk together
     for noun_chunk in __noun_chunks(sent):
         for verb_index, verb_chunk in enumerate(verb_chunks):
             if noun_chunk.root.head in verb_chunk:
@@ -54,7 +57,8 @@ def __adjective_chunks(sent: Doc, verb_chunk: Span, noun_chunk: Span) -> Optiona
             if end is None or token.right_edge.i > end:
                 end = token.right_edge.i
     if begin is not None and end is not None:
-        return sent[begin:end]
+        # We add one in the end as we want to include the token in the end index.
+        return sent[begin:end+1]
 
 
 def ___is_adjective(token: Token, verb_chunk: Span, noun_chunk: Span) -> bool:
@@ -65,7 +69,7 @@ def ___is_adjective(token: Token, verb_chunk: Span, noun_chunk: Span) -> bool:
     """
     return (
             token.head in verb_chunk and
-            token.dep_ in ["xcomp", "acomp", "dobj"] and
+            token.dep_ in ["xcomp", "acomp", "dobj", "agent",] and
             not token in noun_chunk and
             not token in verb_chunk
     )
