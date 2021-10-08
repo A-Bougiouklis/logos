@@ -7,7 +7,7 @@ from web.core.models import db, Token
 from spacy.tokens.doc import Doc as spcay_doc
 
 
-class DependencySentenceGraph(TestCase):
+class DependencySentenceGraphTests(TestCase):
 
     def setUp(self):
         clear_neo4j_database(db)
