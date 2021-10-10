@@ -6,8 +6,8 @@ from web.core.analysis.nlp_models import nlp
 
 class TokenTests(TestCase):
 
-    def setUp(self):
-        clear_neo4j_database(db)
+    # def setUp(self):
+    #     clear_neo4j_database(db)
 
     def test_get_or_create(self):
         doc = nlp("The big dog")
@@ -35,7 +35,7 @@ class TokenTests(TestCase):
 class TokenNodeSetTests(TestCase):
 
     def setUp(self):
-        clear_neo4j_database(db)
+    #     clear_neo4j_database(db)
         self.t1 = Token(token="the").save()
         self.t2 = Token(token="big").save()
         self.t3 = Token(token="dog").save()
