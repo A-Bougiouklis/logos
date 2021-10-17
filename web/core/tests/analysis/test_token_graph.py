@@ -10,7 +10,8 @@ from spacy.tokens.doc import Doc as spcay_doc
 class DependencySentenceGraphTests(TestCase):
 
     def setUp(self):
-        clear_neo4j_database(db)
+        # clear_neo4j_database(db)
+        ...
 
     def dependence_sentence_graph_asserts(
             self, doc: spcay_doc, doc_id: int, sent_id: int
