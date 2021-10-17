@@ -7,7 +7,8 @@ from web.core.analysis.nlp_models import nlp
 class EntityTests(TestCase):
 
     def setUp(self):
-        clear_neo4j_database(db)
+        # clear_neo4j_database(db)
+        ...
 
     def test_get_or_create(self):
         doc = nlp("The big dog")
