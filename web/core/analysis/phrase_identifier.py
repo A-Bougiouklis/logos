@@ -2,7 +2,6 @@ from spacy.tokens.doc import Doc as spcay_doc
 from spacy.tokens.span import Span as spacy_span
 from nltk.corpus import wordnet
 from dataclasses import dataclass
-from typing import Union
 
 from web.core.models import Entity, EntitySet
 
@@ -21,14 +20,14 @@ class Phrase:
     def __init__(
             self,
             span: spacy_span,
-            node_type: Union[type(Entity), type(EntitySet)],
+            node_type: type(Entity),
             verb_chunk: spacy_span = None,
-            adjective_chunks: spacy_span = None
+            adjective_chunk: spacy_span = None
     ):
         self.span = span
         self.node_type = node_type
         self.__verb_span = verb_chunk
-        self.__adjective_chunks = adjective_chunks
+        self.__adjective_chunk = adjective_chunk
 
     @property
     def verb_chunk(self):
@@ -38,9 +37,9 @@ class Phrase:
             raise EntitiesDoNotHaveAssignedChunks
 
     @property
-    def adjective_chunks(self):
+    def adjective_chunk(self):
         if self.node_type == EntitySet:
-            return self.__adjective_chunks
+            return self.__adjective_chunk
         else:
             raise EntitiesDoNotHaveAssignedChunks
 
@@ -89,7 +88,7 @@ def __find_next_phrase(sent: spcay_doc, token_index: int) -> tuple[Phrase, int]:
 
     for window in range(MAX_PHRASE_LENGTH, 0, -1):
         span = sent[token_index: token_index + window]
-        if __is_phrase(span.text):
+        if __is_phrase(span):
             return  Phrase(span, Entity), token_index + window
 
     # If we end up here the token is missing from the wordnet.
@@ -98,10 +97,15 @@ def __find_next_phrase(sent: spcay_doc, token_index: int) -> tuple[Phrase, int]:
     return Phrase(sent[token_index:token_index + 1], Entity), token_index + 1
 
 
-def __is_phrase(phrase: str) -> bool:
-    # The phrases in the wordnet have underscores instead of spaces.
-    phrase = phrase.replace(" ", "_")
-    return bool(wordnet.synsets(phrase))
+def __is_phrase(span: spacy_span) -> bool:
+    """
+    The phrases in the wordnet have underscores instead of spaces.
+
+    Also in order to identity phrases we need to convert the tokens into lemmas as the
+    "get_away" is identified as a phrase in the wordnet but the "got_away" is not.
+    """
+    text = "_".join([token.lemma_ for token in span])
+    return bool(wordnet.synsets(text))
 
 
 def __chunks_to_phrases(
