@@ -40,14 +40,14 @@ class GenerateEntityGraph(TestCase):
             except IndexError:
                 pass
 
-    def test_dependency_sentence_graph_without_cache(self):
+    def test_entity_graph_without_cache(self):
 
         doc = nlp("the big dog ate some poop and then got away from the police.")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         generate_entity_graph(phrases, 1, 2, {}, {})
         self.entity_graph_asserts(phrases, 1, 2)
 
-    def test_dependency_sentence_graph_with_cache(self):
+    def test_entity_graph_with_cache(self):
         doc = nlp("the big dog ate some poop and then got away from the police.")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         cached_entities, cached_entity_sets = generate_entity_graph(
