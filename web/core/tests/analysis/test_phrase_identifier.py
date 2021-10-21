@@ -3,6 +3,7 @@ from django.test import TestCase
 from web.core.analysis.nlp_models import nlp
 from web.core.models import Entity, EntitySet
 from web.core.analysis.phrase_identifier import group_tokens_to_phrases
+from web.core.analysis.chunking import find_chunks
 
 
 class GroupTokensToPhrasesTests(TestCase):
@@ -22,7 +23,7 @@ class GroupTokensToPhrasesTests(TestCase):
     def test_with_one_noun_chunk(self):
 
         doc = nlp("the dog ate some poop")
-        phrases = group_tokens_to_phrases(doc, [doc[0:2]])
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
 
         with self.subTest("the_text_has_the_correct_order"):
             text = " ".join([phrase.span.text for phrase in phrases])
@@ -39,7 +40,7 @@ class GroupTokensToPhrasesTests(TestCase):
             "The dog ate some poop , the human had to scoop the poop , the trash "
             "collector had to collect the poop"
         )
-        phrases = group_tokens_to_phrases(doc, [doc[0:2], doc[6:8], doc[14:16]])
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
 
         with self.subTest("the_text_has_the_correct_order"):
             text = " ".join([phrase.span.text for phrase in phrases])
