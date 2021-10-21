@@ -1,4 +1,5 @@
 import spacy
+import nltk
 from spacy.matcher import Matcher
 
 
@@ -18,3 +19,5 @@ VERB_PATTERNS = [
 ]
 verb_phrase_matcher = Matcher(nlp.vocab)
 verb_phrase_matcher.add("Verb phrase", VERB_PATTERNS)
+
+nltk.download('wordnet')
