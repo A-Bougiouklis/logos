@@ -54,6 +54,33 @@ class EntityTests(TestCase):
         google_propn_node = Entity.get_or_create(google_propn)
         self.assertEqual(["VERB", "PROPN"], google_propn_node.pos)
 
+    def test_generate_synonyms(self):
+
+        with self.subTest("do_not_generate_synonyms_when_entities_do_not_exist"):
+            token = nlp("dog")[0]
+            entity = Entity.get_or_create(token)
+            entity.generate_synonyms(token)
+            self.assertEqual(1, len(Entity.nodes.all()))
+
+        with self.subTest("generate_synonyms_when_corresponding_entities_exist"):
+            token = nlp("dog")[0]
+            entity = Entity.get_or_create(token)
+            synonym_entity = Entity.get_or_create(nlp("domestic dog")[0:])
+            entity.generate_synonyms(token)
+
+            self.assertEqual(2, len(Entity.nodes.all()))
+            self.assertIsNotNone(entity.synonym.relationship(synonym_entity))
+
+        with self.subTest("generate_synonyms_for_phrases_with_multiple_tokens"):
+            span = nlp("Canis familiaris")[0:]
+            entity = Entity.get_or_create(span)
+            synonym_entity = Entity.get_or_create(nlp("domestic dog")[0:])
+            entity.generate_synonyms(span)
+
+            # The forth entitiy is the root of the "Canis familiaris" -> "familiaris"
+            self.assertEqual(4, len(Entity.nodes.all()))
+            self.assertIsNotNone(entity.synonym.relationship(synonym_entity))
+
 
 class EntityNodeSetTests(TestCase):
 
