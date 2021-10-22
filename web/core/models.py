@@ -7,8 +7,10 @@ from neomodel import (
     StructuredRel,
     ArrayProperty,
     FloatProperty,
+    JSONProperty,
     NodeSet,
 )
+from spacy.matcher import Matcher
 from neomodel.util import classproperty
 from neomodel.contrib import SemiStructuredNode
 from neomodel import db
@@ -16,6 +18,7 @@ from spacy.tokens import Token as spacy_token
 from spacy.tokens.span import Span as spacy_span
 from typing import Union
 from nltk.corpus import wordnet
+import spacy
 
 
 class EntityNodeSet(NodeSet):
@@ -116,8 +119,6 @@ class EntitySetRel(StructuredRel):
 
 class EntitySet(Entity, SemiStructuredNode):
 
-    parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
-
     def set_property(self, name: str, value: str):
         name = name.replace(" ", "_")
 
@@ -127,3 +128,26 @@ class EntitySet(Entity, SemiStructuredNode):
             setattr(self, name, list(property))
         else:
             setattr(self, name, [value])
+
+
+nlp = spacy.load('en_core_web_sm')
+
+
+class Rule(StructuredNode):
+    rule = JSONProperty(required=True)
+    label = StringProperty(required=True)
+    confidence = FloatProperty()
+
+    def __init__(self):
+        super().__init__()
+        self.__matcher = None
+
+    def __call__(self) -> Matcher:
+        return self.matcher
+
+    @property
+    def matcher(self) -> Matcher:
+        if not self.__matcher:
+            self.__matcher = Matcher(nlp.vocab)
+            self.__matcher.add(self.label, self.rule)
+        return self.__matcher
