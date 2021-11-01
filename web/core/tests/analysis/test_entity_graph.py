@@ -58,3 +58,20 @@ class GenerateEntityGraph(TestCase):
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         generate_entity_graph(phrases, 2, 3, cached_entities, cached_entity_sets)
         self.entity_graph_asserts(phrases, 2, 3)
+
+    def test_entity_graph_with_existing_entity_set_as_entity(self):
+
+        doc = nlp("the big dog ate some poop and then got away from the police.")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        generate_entity_graph(phrases, 1, 2, {}, {})
+
+        doc = nlp("the police officer caught the big dog")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        generate_entity_graph(phrases, 1, 3, {}, {})
+
+        caught = Entity.nodes.get(text="caught")
+        the_big_dog = EntitySet.nodes.get(text="the big dog")
+        ate = Entity.nodes.get(text="ate")
+
+        self.assertIsNotNone(caught.sentence.relationship(the_big_dog))
+        self.assertIsNotNone(the_big_dog.sentence.relationship(ate))

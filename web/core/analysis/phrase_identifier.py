@@ -29,6 +29,9 @@ class Phrase:
         self.__verb_span = verb_chunk
         self.__adjective_chunk = adjective_chunk
 
+    def has_property(self):
+        return self.verb_chunk and self.adjective_chunk
+
     @property
     def verb_chunk(self):
         if self.node_type == EntitySet:
@@ -88,13 +91,19 @@ def __find_next_phrase(sent: spcay_doc, token_index: int) -> tuple[Phrase, int]:
 
     for window in range(MAX_PHRASE_LENGTH, 0, -1):
         span = sent[token_index: token_index + window]
-        if __is_phrase(span):
+        if __is_entity_set(span):
+            return Phrase(span, EntitySet), token_index + window
+        elif __is_phrase(span):
             return  Phrase(span, Entity), token_index + window
 
     # If we end up here the token is missing from the wordnet.
     # We extract the token as a sub list to ensure that it is of type spaCy_Span
     # and not spaCy_Token.
     return Phrase(sent[token_index:token_index + 1], Entity), token_index + 1
+
+
+def __is_entity_set(span: spacy_span) -> bool:
+    return True if EntitySet.nodes.filter(text=span.text) else False
 
 
 def __is_phrase(span: spacy_span) -> bool:
