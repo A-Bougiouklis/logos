@@ -78,3 +78,11 @@ class GroupTokensToPhrasesTests(TestCase):
 
         with self.subTest("the_tokens_get_and_out_are_grouped_in_one_phrase"):
             self.assertEqual(phrases[2].span.text, "get out")
+
+    def test_groups_together_existing_entity_sets(self):
+        EntitySet.get_or_create(nlp("the big dog")[0:])
+        doc = nlp("The police caught the big dog")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+
+        entity_sets = [phrase for phrase in phrases if phrase.node_type == EntitySet]
+        self.assertEqual(2, len(entity_sets))

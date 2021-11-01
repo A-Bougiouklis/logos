@@ -52,7 +52,6 @@ def __to_entity_node(
         entity_node, cached_entity_sets = __get_node(
             phrase, cached_entity_sets
         )
-
         if phrase.has_property():
             entity_node.set_property(
                 phrase.verb_chunk.text, phrase.adjective_chunk.text
