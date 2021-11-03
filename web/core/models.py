@@ -120,10 +120,17 @@ class EntitySet(Entity, SemiStructuredNode):
 
     def set_property(self, name: str, value: str):
         name = name.replace(" ", "_")
+        changed = False
 
         if hasattr(self, name):
-            property = set(getattr(self, name))
-            property.add(value)
-            setattr(self, name, list(property))
+            properties = set(getattr(self, name))
+            if value not in properties:
+                properties.add(value)
+                setattr(self, name, list(properties))
+                changed = True
         else:
             setattr(self, name, [value])
+            changed = True
+
+        if changed:
+            self.save()

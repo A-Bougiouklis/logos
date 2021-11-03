@@ -7,7 +7,7 @@ def generate_entity_graph(
     doc_id: int,
     sent_id: int,
     cached_entities: dict[str, Entity],
-) -> dict[str, Entity]:
+) -> tuple[dict[str, Entity], list[Phrase]]:
     """
     It analyse the given sentence by creating or updating the Entity nodes.
     """
@@ -16,13 +16,13 @@ def generate_entity_graph(
     while index < len(phrases):
 
         phrase = phrases[index]
-        entity_node, cached_entities = __get_node(phrase, cached_entities)
+        phrase.node, cached_entities = __get_node(phrase, cached_entities)
 
         # Connect sentence relationships
         if next_phrase := phrases[index + 1] if index < len(phrases) - 1 else None:
-            next_entity_node, cached_entities = __get_node(next_phrase, cached_entities)
-            entity_node.sentence.connect(
-                next_entity_node,
+            next_phrase.node, cached_entities = __get_node(next_phrase, cached_entities)
+            phrase.node.sentence.connect(
+                next_phrase.node,
                 {
                     "document_id": doc_id,
                     "sentence_id": sent_id,
@@ -32,7 +32,7 @@ def generate_entity_graph(
 
         index += 1
 
-    return cached_entities
+    return cached_entities, phrases
 
 
 def __get_node(

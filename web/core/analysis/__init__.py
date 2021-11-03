@@ -4,6 +4,7 @@ from web.core.models import Entity, EntitySet
 from .chunking import find_chunks
 from .entity_graph import generate_entity_graph
 from .phrase_identifier import group_tokens_to_phrases
+from .property_setter import property_setter
 from web.core.analysis.nlp_models import nlp
 
 
@@ -35,10 +36,10 @@ def sentence_analysis(
 ) -> type[dict[str, Entity], dict[str, EntitySet]]:
 
     phrases = group_tokens_to_phrases(sent, find_chunks(sent))
-    cached_entity_nodes = generate_entity_graph(
+    cached_entity_nodes, phrases = generate_entity_graph(
         phrases, doc_id, sent_id, cached_entity_nodes
     )
-
+    phrases = property_setter(phrases)
 
 
     return cached_entity_nodes
