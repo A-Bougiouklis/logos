@@ -7,8 +7,7 @@ def generate_entity_graph(
     doc_id: int,
     sent_id: int,
     cached_entities: dict[str, Entity],
-    cached_entity_sets: dict[str, EntitySet],
-) -> tuple[dict[str, Entity], dict[str, Entity]]:
+) -> dict[str, Entity]:
     """
     It analyse the given sentence by creating or updating the Entity nodes.
     """
@@ -17,15 +16,11 @@ def generate_entity_graph(
     while index < len(phrases):
 
         phrase = phrases[index]
-        entity_node, cached_entities, cached_entity_sets = __to_entity_node(
-            phrase, cached_entities, cached_entity_sets
-        )
+        entity_node, cached_entities = __get_node(phrase, cached_entities)
 
         # Connect sentence relationships
         if next_phrase := phrases[index + 1] if index < len(phrases) - 1 else None:
-            next_entity_node, cached_entities, cached_entity_sets = __to_entity_node(
-            next_phrase, cached_entities, cached_entity_sets
-            )
+            next_entity_node, cached_entities = __get_node(next_phrase, cached_entities)
             entity_node.sentence.connect(
                 next_entity_node,
                 {
@@ -37,30 +32,7 @@ def generate_entity_graph(
 
         index += 1
 
-    return cached_entities, cached_entity_sets
-
-
-def __to_entity_node(
-        phrase: Phrase,
-        cached_entities: dict[str, Entity],
-        cached_entity_sets: dict[str, EntitySet]
-) -> tuple[Entity, dict[str, Entity], dict[str, EntitySet]]:
-
-    if phrase.node_type == Entity:
-        entity_node, cached_entities = __get_node(phrase, cached_entities)
-    elif phrase.node_type == EntitySet:
-        entity_node, cached_entity_sets = __get_node(
-            phrase, cached_entity_sets
-        )
-        if phrase.has_property():
-            entity_node.set_property(
-                phrase.verb_chunk.text, phrase.adjective_chunk.text
-            )
-            entity_node.save()
-    else:
-        raise ValueError("Wrong node type assigned to phrase.")
-
-    return entity_node, cached_entities, cached_entity_sets
+    return cached_entities
 
 
 def __get_node(

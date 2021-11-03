@@ -12,7 +12,7 @@ def document_analysis(document: str):
     doc_id = Entity.nodes.max_document_id + 1
     sen_id = Entity.nodes.max_sentence_id + 1
 
-    cached_entity_nodes, cached_entity_set_nodes = {}, {}
+    cached_entity_nodes = {}
 
     doc = nlp(document)
     for sent in doc.sents:
@@ -23,7 +23,6 @@ def document_analysis(document: str):
             doc_id,
             sen_id,
             cached_entity_nodes,
-            cached_entity_set_nodes,
         )
         sen_id += 1
 
@@ -33,12 +32,13 @@ def sentence_analysis(
         doc_id: int,
         sent_id: int,
         cached_entity_nodes: dict[str, Entity],
-        cached_entity_set_nodes: dict[str, EntitySet],
 ) -> type[dict[str, Entity], dict[str, EntitySet]]:
 
     phrases = group_tokens_to_phrases(sent, find_chunks(sent))
-    cached_entity_nodes, cached_entity_set_nodes = generate_entity_graph(
-        phrases, doc_id, sent_id, cached_entity_nodes, cached_entity_set_nodes
+    cached_entity_nodes = generate_entity_graph(
+        phrases, doc_id, sent_id, cached_entity_nodes
     )
 
-    return cached_entity_nodes, cached_entity_set_nodes
+
+
+    return cached_entity_nodes
