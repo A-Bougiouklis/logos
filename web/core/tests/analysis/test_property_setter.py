@@ -19,7 +19,7 @@ class PropertySetterTests(TestCase):
         doc = nlp("the big dog ate some poop")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         _, phrases = generate_entity_graph(phrases, 1, 2, {})
-        phrases = property_setter(phrases)
+        phrases, _ = property_setter(phrases, {})
 
         the_big_dog = phrases[0]
         self.assertEqual(
@@ -31,4 +31,21 @@ class PropertySetterTests(TestCase):
         self.assertEqual(
             getattr(stored_the_big_dog, the_big_dog.verb_chunk.text),
             [the_big_dog.adjective_chunk.text]
+        )
+
+    def test_updates_the_cache(self):
+
+        doc = nlp("the big dog ate some poop")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        _, phrases = generate_entity_graph(phrases, 1, 2, {})
+
+        cache = {phrases[0].span.text: phrases[0].node}
+
+        self.assertFalse(hasattr(phrases[0].node, phrases[0].verb_chunk.text))
+
+        phrases, cache = property_setter(phrases, cache)
+
+        self.assertEqual(
+            getattr(cache[phrases[0].span.text], phrases[0].verb_chunk.text),
+            [phrases[0].adjective_chunk.text]
         )

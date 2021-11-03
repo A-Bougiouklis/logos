@@ -39,7 +39,7 @@ def sentence_analysis(
     cached_entity_nodes, phrases = generate_entity_graph(
         phrases, doc_id, sent_id, cached_entity_nodes
     )
-    phrases = property_setter(phrases)
+    phrases, cached_entity_nodes = property_setter(phrases, cached_entity_nodes)
 
 
     return cached_entity_nodes
