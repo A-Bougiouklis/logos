@@ -1,6 +1,6 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
-from web.core.models import db, EntitySet
+from web.core.models.entities import db, EntitySet
 from web.core.analysis.nlp_models import nlp
 
 

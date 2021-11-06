@@ -1,6 +1,6 @@
 from spacy.tokens.doc import Doc as spacy_doc
 
-from web.core.models import Entity, EntitySet
+from web.core.models.entities import Entity, EntitySet
 from .chunking import find_chunks
 from .entity_graph import generate_entity_graph
 from .phrase_identifier import group_tokens_to_phrases

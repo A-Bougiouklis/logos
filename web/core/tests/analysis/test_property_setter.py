@@ -1,7 +1,7 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
 
-from web.core.models import db, EntitySet
+from web.core.models.entities import db, EntitySet
 from web.core.analysis import property_setter
 from web.core.analysis.phrase_identifier import group_tokens_to_phrases
 from web.core.analysis.entity_graph import generate_entity_graph

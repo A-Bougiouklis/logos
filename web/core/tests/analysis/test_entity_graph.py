@@ -2,7 +2,7 @@ from django.test import TestCase
 from neomodel import clear_neo4j_database
 from unittest import skip
 
-from web.core.models import db, Entity, EntitySet
+from web.core.models.entities import db, Entity, EntitySet
 from web.core.analysis.nlp_models import nlp
 from web.core.analysis.entity_graph import generate_entity_graph
 from web.core.analysis.phrase_identifier import group_tokens_to_phrases, Phrase

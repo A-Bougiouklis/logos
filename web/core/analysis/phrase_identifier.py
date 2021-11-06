@@ -4,7 +4,7 @@ from nltk.corpus import wordnet
 from dataclasses import dataclass
 from typing import Union
 
-from web.core.models import Entity, EntitySet
+from web.core.models.entities import Entity, EntitySet
 
 
 class EntitiesDoNotHaveAssignedChunks(Exception):

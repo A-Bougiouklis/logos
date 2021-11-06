@@ -118,6 +118,14 @@ class EntitySet(Entity, SemiStructuredNode):
 
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
 
+    def get_property(self, name: str) -> list[str]:
+        name = name.replace(" ", "_")
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            return []
+
+
     def set_property(self, name: str, value: str):
         name = name.replace(" ", "_")
         changed = False

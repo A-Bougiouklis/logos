@@ -1,5 +1,5 @@
 from core.analysis.phrase_identifier import Phrase
-from web.core.models import EntitySet, Entity
+from web.core.models.entities import Entity
 
 
 def generate_entity_graph(

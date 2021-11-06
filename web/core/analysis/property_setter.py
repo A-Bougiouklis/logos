@@ -1,5 +1,5 @@
 from web.core.analysis.phrase_identifier import Phrase
-from web.core.models import EntitySet, Entity
+from web.core.models.entities import EntitySet, Entity
 
 
 def property_setter(
