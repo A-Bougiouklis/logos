@@ -118,6 +118,14 @@ class EntitySet(Entity, SemiStructuredNode):
 
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
 
+    @property
+    def not_defined_properties(self) -> dict[str, list[str]]:
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ["parent", "sentence", "synonym", "text", "pos", "id"]
+        }
+
     def get_property(self, name: str) -> list[str]:
         name = name.replace(" ", "_")
         try:
