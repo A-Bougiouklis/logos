@@ -110,6 +110,27 @@ class Entity(StructuredNode):
                     self.synonym.connect(synonym_node)
 
 
+class EntitySetNodeSet(NodeSet):
+
+    @classmethod
+    def similar_entity_set_as(cls, entity_set_span: spacy_span):
+
+        r = ""
+        for token in entity_set_span:
+            if token == entity_set_span.root:
+                r += "\s*[a-zA-z]*"
+            else:
+                r += f"\s*{token.text}"
+
+        results, _ = db.cypher_query(
+            f"MATCH (e:EntitySet) "
+            f"""WHERE e.text =~ '{r}' AND e.text<>'{entity_set_span.text}' """
+            f"return e",
+            resolve_objects=True
+        )
+        return results[0]
+
+
 class EntitySetRel(StructuredRel):
     confidence = FloatProperty()
 
@@ -117,6 +138,10 @@ class EntitySetRel(StructuredRel):
 class EntitySet(Entity, SemiStructuredNode):
 
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
+
+    @classproperty
+    def nodes(cls):
+        return EntitySetNodeSet(cls)
 
     @property
     def not_defined_properties(self) -> dict[str, list[str]]:
