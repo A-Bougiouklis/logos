@@ -41,6 +41,7 @@ def __get_node(
     node = cached_nodes.get(phrase.span.text)
     if node is None:
         node = phrase.node_type.get_or_create(phrase.span)
+        # TODO: Needs to placed somewhere else as it does not make sense here.
         node.generate_synonyms(phrase.span)
         cached_nodes[phrase.span.text] = node
     return node, cached_nodes
