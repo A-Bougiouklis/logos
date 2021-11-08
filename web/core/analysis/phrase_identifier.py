@@ -106,6 +106,7 @@ def __find_next_phrase(sent: spcay_doc, token_index: int) -> tuple[Phrase, int]:
 
 
 def __is_entity_set(span: spacy_span) -> bool:
+    # TODO: Use also the cached dictionary to check whether the span is a entity set.
     return True if EntitySet.nodes.filter(text=span.text) else False
 
 
