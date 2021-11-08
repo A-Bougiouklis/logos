@@ -22,13 +22,10 @@ class EntitySetNodeSetTests(TestCase):
 
     def test_similar_entity_set_as(self):
         nodes = EntitySet.nodes.similar_entity_set_as(self.the_big_dog.span)
-        self.assertEqual(2, len(nodes))
+        self.assertEqual(1, len(nodes))
 
         self.assertEqual(EntitySet, type(nodes[0]))
-        self.assertEqual("The big dog", nodes[0].text)
-
-        self.assertEqual(EntitySet, type(nodes[1]))
-        self.assertEqual("The big cat", nodes[1].text)
+        self.assertEqual("The big cat", nodes[0].text)
 
 
 class EntitySetTests(TestCase):

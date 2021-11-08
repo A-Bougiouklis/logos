@@ -126,7 +126,7 @@ class EntitySetNodeSet(NodeSet):
 
         results, _ = db.cypher_query(
             f"MATCH (e:EntitySet) "
-            f"WHERE e.text =~ '{r}' "
+            f"WHERE e.text =~ '{r}' AND e.text <> '{entity_set_span.text}' "
             f"return e",
             resolve_objects=True
         )
