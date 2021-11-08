@@ -11,7 +11,7 @@ def property_setter(
     """
 
     for phrase in phrases:
-        if isinstance(phrase.node, EntitySet):
+        if isinstance(phrase.node, EntitySet) and phrase.verb_chunk:
             phrase.node.set_property(phrase.verb_chunk.text, phrase.adjective_chunk.text)
             cached_entities[phrase.span.text] = phrase.node
     return phrases, cached_entities

@@ -126,6 +126,20 @@ class EntitySet(Entity, SemiStructuredNode):
             if key not in ["parent", "sentence", "synonym", "text", "pos", "id"]
         }
 
+    @property
+    def not_defined_properties_as_set(self) -> set[str]:
+        """
+        We convert the non defined properties to a set. We sort every list in order to
+        able to compare the inner elements with other sets.
+        """
+
+        not_defined_properties = self.not_defined_properties
+        result = set()
+        for key in sorted(not_defined_properties.keys()):
+            result.add(key + " : " + str(sorted(not_defined_properties[key])))
+        return result
+
+
     def get_property(self, name: str) -> list[str]:
         name = name.replace(" ", "_")
         try:
