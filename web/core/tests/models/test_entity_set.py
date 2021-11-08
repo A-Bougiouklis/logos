@@ -1,6 +1,6 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
-from web.core.models.entities import db, EntitySet, EntitySetNodeSet
+from web.core.models.entities import db, EntitySet
 from web.core.analysis.nlp_models import nlp
 from web.core.analysis.entity_graph import generate_entity_graph
 from web.core.analysis.chunking import find_chunks
@@ -22,9 +22,13 @@ class EntitySetNodeSetTests(TestCase):
 
     def test_similar_entity_set_as(self):
         nodes = EntitySet.nodes.similar_entity_set_as(self.the_big_dog.span)
-        self.assertEqual(1, len(nodes))
+        self.assertEqual(2, len(nodes))
+
         self.assertEqual(EntitySet, type(nodes[0]))
-        self.assertEqual("The big cat", nodes[0].text)
+        self.assertEqual("The big dog", nodes[0].text)
+
+        self.assertEqual(EntitySet, type(nodes[1]))
+        self.assertEqual("The big cat", nodes[1].text)
 
 
 class EntitySetTests(TestCase):

@@ -17,6 +17,8 @@ from spacy.tokens.span import Span as spacy_span
 from typing import Union
 from nltk.corpus import wordnet
 
+from core.utlis import flatten
+
 
 class EntityNodeSet(NodeSet):
 
@@ -124,11 +126,12 @@ class EntitySetNodeSet(NodeSet):
 
         results, _ = db.cypher_query(
             f"MATCH (e:EntitySet) "
-            f"""WHERE e.text =~ '{r}' AND e.text<>'{entity_set_span.text}' """
+            f"WHERE e.text =~ '{r}' "
             f"return e",
             resolve_objects=True
         )
-        return results[0]
+
+        return flatten(results)
 
 
 class EntitySetRel(StructuredRel):
