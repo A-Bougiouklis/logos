@@ -17,10 +17,12 @@ def update_rules(phrases: list[Phrase], node_cache: dict[str, Entity]):
             continue
 
         try:
-            CommonPropertiesRule.create_or_update(phrase)
             ParentalRule.create_or_update(phrase, node_cache)
         except NoSecondaryEntitySetException:
             pass
+
+        try:
+            CommonPropertiesRule.create_or_update(phrase)
         except SmallEntitySetException:
             pass
         except NoCommonPropertiesException:

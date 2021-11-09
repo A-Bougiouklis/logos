@@ -5,6 +5,7 @@ from neomodel import (
     StructuredNode,
     StringProperty,
 )
+from core.utlis import flatten
 from dataclasses import dataclass
 from web.core.analysis.phrase_identifier import group_tokens_to_phrases
 
@@ -50,9 +51,6 @@ class ParentalRule(Rule):
     """
     A rule which sets an entity set as a parent to a second entity set based on
     their common properties.
-
-    sentence_pattern: Is generated out the sentence which made the system __approximate
-    the parental relationship between entity sets
     """
     approximations = ArrayProperty(StringProperty(), required=True)
 
@@ -62,13 +60,13 @@ class ParentalRule(Rule):
     ) -> ParentalRule:
 
         phrases = cls.entity_set_phrases(entity_set_phrase, node_cache)
-        sentence_pattern = cls.__sentence_pattern_from_phrases(phrases)
+        pattern = cls.__pattern_from_phrases(phrases)
 
-        if rules := cls.nodes.filter(sentence_pattern=sentence_pattern):
+        if rules := cls.nodes.filter(pattern=pattern):
             rule = rules[0]
             rule.update(entity_set_phrase, phrases)
         else:
-            rule = cls.__create_rule(entity_set_phrase, phrases, sentence_pattern)
+            rule = cls.__create_rule(entity_set_phrase, phrases, pattern)
         return rule
 
     @staticmethod
@@ -91,17 +89,17 @@ class ParentalRule(Rule):
         return phrases
 
     @classmethod
-    def __sentence_pattern_from_phrases(cls, phrases: list[Phrase]) -> str:
+    def __pattern_from_phrases(cls, phrases: list[Phrase]) -> str:
         """
         Returns the longest generated sentence pattern from the given phrases
         """
         try:
-            return cls.__every_sentence_pattern_from_phrases(phrases)[-1]
+            return cls.__every_pattern_from_phrases(phrases)[-1]
         except IndexError:
             return ""
 
     @staticmethod
-    def __every_sentence_pattern_from_phrases(phrases: list[Phrase]) -> list[str]:
+    def __every_pattern_from_phrases(phrases: list[Phrase]) -> list[str]:
         """
         Generates every sentence pattern for the given phrases.
 
@@ -123,15 +121,15 @@ class ParentalRule(Rule):
 
     @classmethod
     def __create_rule(
-            cls, entity_set_phrase: Phrase, phrases: list[Phrase], sentence_pattern: str
+            cls, entity_set_phrase: Phrase, phrases: list[Phrase], pattern: str
     ):
 
-        if sentence_pattern.count("EntitySet") < 2:
+        if pattern.count("EntitySet") < 2:
             raise NoSecondaryEntitySetException
 
         return cls(
             approximations = cls.__approximations_for_phrases(entity_set_phrase, phrases),
-            sentence_pattern = sentence_pattern
+            pattern = pattern
         ).save()
 
     @classmethod
@@ -221,6 +219,7 @@ class CommonPropertiesRule(Rule):
             common = cls.__common_properties(es_phrase)
             rule = rule[0]
             rule.properties = common.keys()
+
             rule.frequency = min(common.values())
             rule.save()
             return rule
@@ -236,7 +235,6 @@ class CommonPropertiesRule(Rule):
                 frequency=min(common.values())
             ).save()
 
-
     @staticmethod
     def __common_properties(es_phrase: Phrase) -> dict[str, int]:
         """
@@ -244,21 +242,16 @@ class CommonPropertiesRule(Rule):
         entity sets. We consider a property common when
         its frequency >= MINIMUM_FREQUENCY.
         """
-
-        similar = EntitySet.nodes.similar_entity_set_as(es_phrase.span)
-        similar.append(es_phrase.node)
+        similar_nodes = EntitySet.nodes.similar_entity_set_as(es_phrase.span)
+        similar_nodes.append(es_phrase.node)
+        similar_properties = [n.not_defined_properties_as_set for n in similar_nodes]
 
         common = {}
 
-        for es_index, es_1 in enumerate(similar):
-            for es_2 in similar[es_index + 1:]:
-                common_set = es_1.not_defined_properties_as_set.intersection(
-                    es_2.not_defined_properties_as_set
-                )
-                for common_property in common_set:
-                    if common.get(common_property):
-                        common[common_property] += 1
-                    else:
-                        common[common_property] = 1
+        for p in flatten(similar_properties):
+            if common.get(p):
+                common[p] += 1
+            else:
+                common[p] = 1
 
         return {key: f for key, f in common.items() if f >= MINIMUM_FREQUENCY}

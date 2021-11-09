@@ -37,6 +37,7 @@ class ParentalRuleNodeSetTests(TestCase):
     def test_create_or_update_create_new_rule(self):
         rule = ParentalRule.create_or_update(self.a_counterparty, self.cache)
 
+        self.assertEqual(1, len(ParentalRule.nodes.all()))
         self.assertEqual([ParentalRuleResult.disjoint], rule.approximations)
         self.assertEqual(
             "(:EntitySet)-[:SENTENCE]->(:Entity {text: 'is'})-[:SENTENCE]->(:EntitySet)",
