@@ -39,6 +39,13 @@ class NoSecondaryEntitySetException(Exception):
     ...
 
 
+class WrongApproximationsException(Exception):
+    """
+    Raised when we attempt to create a ParentalRule with an empty approximation list.
+    """
+    ...
+
+
 @dataclass
 class ParentalRuleResult:
     disjoint: str = "DISJOINT"
@@ -84,7 +91,8 @@ class ParentalRule(Rule):
             if node := node_cache.get(phrase.span.text):
                 phrase.node = node
             else:
-                phrase.node = Entity.nodes.get(phrase.span.text)
+                # We could find new entities as we have formed the phrases differently.
+                phrase.node = Entity.get_or_create(phrase.span)
 
         return phrases
 
@@ -137,11 +145,21 @@ class ParentalRule(Rule):
             cls, entity_set_phrase: Phrase, phrases: list[Phrase]
     )-> list[str]:
 
-        return [
+        approximations = [
             cls.__approximate(entity_set_phrase.node, phrase.node)
             for phrase in phrases
             if phrase.node_type == EntitySet and entity_set_phrase.node != phrase.node
         ]
+
+        # When we have a sentence where the same entity set is duplicated and then we
+        # could end up with no approximations.
+        # Or we a entity set is duplicated in the sentence and the approximation list
+        # does not correspond to the entity_set list from the sentence.
+        entity_set_phrases = [e for e in phrases if e.node_type == EntitySet]
+        if not approximations or len(approximations) != len(entity_set_phrases) - 1:
+            raise WrongApproximationsException
+
+        return approximations
 
     @staticmethod
     def __approximate(entity_set_1: EntitySet, entity_set_2: EntitySet) -> str:

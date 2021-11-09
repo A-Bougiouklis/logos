@@ -9,8 +9,8 @@ from web.core.analysis import document_analysis
 
 class EntitySetTests(TestCase):
 
-    def setUp(self):
-        clear_neo4j_database(db)
+    # def setUp(self):
+    #     clear_neo4j_database(db)
 
 
     def test_document_analysis_with_one_big_file(self):
@@ -29,13 +29,13 @@ class EntitySetTests(TestCase):
         cached_nodes = {}
         # Problems with 1682, 3572, 9595, 19220
         # 19221
-        for index, sentence in enumerate(sentences):
-            try:
-                sentence = re.sub(r'[^\w\s]', '', sentence)
-                print(f"{index} out of {len(sentences)}")
-                cached_nodes = document_analysis(sentence, cached_nodes)
-            except Exception as e:
-                print("ERROR: ", e)
+        for index, sentence in enumerate(sentences[1683:]):
+            # try:
+            sentence = re.sub(r'[^\w\s]', '', sentence)
+            print(f"{index + 1683} out of {len(sentences)}")
+            cached_nodes = document_analysis(sentence, cached_nodes)
+            # except Exception as e:
+            #     print("ERROR: ", e)
 
         print("Needed time to analyse : ", time.time() - s)
 

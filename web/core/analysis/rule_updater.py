@@ -6,6 +6,7 @@ from web.core.models.rules import (
     NoSecondaryEntitySetException,
     SmallEntitySetException,
     NoCommonPropertiesException,
+    WrongApproximationsException
 )
 
 
@@ -19,6 +20,8 @@ def update_rules(phrases: list[Phrase], node_cache: dict[str, Entity]):
         try:
             ParentalRule.create_or_update(phrase, node_cache)
         except NoSecondaryEntitySetException:
+            pass
+        except WrongApproximationsException:
             pass
 
         try:
