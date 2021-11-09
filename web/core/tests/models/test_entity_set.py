@@ -1,63 +1,50 @@
 from django.test import TestCase
 from neomodel import clear_neo4j_database
-from web.core.models import db, EntitySet, Token
+from web.core.models.entities import db, EntitySet
 from web.core.analysis.nlp_models import nlp
+from web.core.analysis.entity_graph import generate_entity_graph
+from web.core.analysis.chunking import find_chunks
+from web.core.analysis.phrase_identifier import group_tokens_to_phrases
 
-
-class EntitySetTests(TestCase):
+class EntitySetNodeSetTests(TestCase):
 
     # def setUp(self):
     #     clear_neo4j_database(db)
 
-    def test_get_or_create_for_token(self):
+        doc = nlp("The big dog ate some poop.")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        _, phrases = generate_entity_graph(phrases, 1, 2, {})
+        self.the_big_dog = phrases[0]
+
+        doc = nlp("The big cat ate some poop.")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        _, phrases = generate_entity_graph(phrases, 1, 2, {})
+
+    def test_similar_entity_set_as(self):
+        nodes = EntitySet.nodes.similar_entity_set_as(self.the_big_dog.span)
+        self.assertEqual(1, len(nodes))
+
+        self.assertEqual(EntitySet, type(nodes[0]))
+        self.assertEqual("The big cat", nodes[0].text)
+
+
+class EntitySetTests(TestCase):
+
+    def setUp(self):
+        clear_neo4j_database(db)
+
+    def test_not_defined_properties(self):
         doc = nlp("The big dog")
 
-        EntitySet.get_or_create(doc[2])
+        dog_entity_set = EntitySet.get_or_create(doc[2])
+        dog_entity_set.set_property("ate", "some poop")
+        dog_entity_set.set_property("ate", "a brisket")
+        dog_entity_set.set_property("caught", "the ball")
 
-        with self.subTest("creates_entity_set"):
-            dog_entity_set = EntitySet.nodes.get(name="dog")
-            self.assertEqual("dog", dog_entity_set.name)
-
-        with self.subTest("creates_token"):
-            dog_token = Token.nodes.get(token="dog")
-            self.assertEqual("dog", dog_token.token)
-
-        with self.subTest("relationship_between_token_and_entity_set"):
-            r = dog_entity_set.token.relationship(dog_token)
-            self.assertEqual(0, r.order)
-
-    def test_get_or_create_for_noun_chunk(self):
-        doc = nlp("The big dog ate the poop.")
-
-        EntitySet.get_or_create(doc[0:3])
-
-        with self.subTest("creates_entity_set"):
-            dog_entity_set = EntitySet.nodes.get(name="The big dog")
-            self.assertEqual("The big dog", dog_entity_set.name)
-
-        with self.subTest("gets_entity_set_if_already_exits"):
-            existing_dog_entity_set = EntitySet.get_or_create(doc[0:3])
-            self.assertEqual(existing_dog_entity_set, dog_entity_set)
-
-        with self.subTest("creates_root_entity_set"):
-            root_entity_set = EntitySet.nodes.get(name="dog")
-            self.assertEqual("dog", root_entity_set.name)
-
-        with self.subTest("creates_tokens"):
-            the_token = Token.nodes.get(token="The")
-            big_token = Token.nodes.get(token="big")
-            dog_token = Token.nodes.get(token="dog")
-            self.assertEqual("The", the_token.token)
-            self.assertEqual("big", big_token.token)
-            self.assertEqual("dog", dog_token.token)
-
-        with self.subTest("relationship_between_tokens_and_entity_set"):
-            r0 = dog_entity_set.token.relationship(the_token)
-            self.assertEqual(0, r0.order)
-            r1 = dog_entity_set.token.relationship(big_token)
-            self.assertEqual(1, r1.order)
-            r2 = dog_entity_set.token.relationship(dog_token)
-            self.assertEqual(2, r2.order)
+        self.assertCountEqual(
+            {"ate": ["some poop", "a brisket"], "caught": ["the ball"]},
+            dog_entity_set.not_defined_properties
+        )
 
     def test_set_property(self):
         doc = nlp("The big dog")

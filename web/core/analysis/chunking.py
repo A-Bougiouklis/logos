@@ -4,14 +4,7 @@ from spacy.tokens.token import Token
 from spacy.util import filter_spans
 from typing import Optional
 
-from web.core.models import EntitySet
 from web.core.analysis.nlp_models import verb_phrase_matcher
-
-
-def chunking(sent: Doc) -> list[list[Span, Span, Span]]:
-    chunks = find_chunks(sent)
-    generate_entity_sets(chunks)
-    return chunks
 
 
 def find_chunks(sent: Doc) -> list[list[Span, Span, Span]]:
@@ -69,14 +62,7 @@ def ___is_adjective(token: Token, verb_chunk: Span, noun_chunk: Span) -> bool:
     """
     return (
             token.head in verb_chunk and
-            token.dep_ in ["xcomp", "acomp", "dobj", "agent",] and
+            token.dep_ in ["xcomp", "acomp", "dobj", "agent", "attr", "prep"] and
             not token in noun_chunk and
             not token in verb_chunk
     )
-
-
-def generate_entity_sets(chunks: list[list[Span, Span, Span]]):
-    for noun_chunk, verb_chunk, adjective_chunk in chunks:
-        entity_set = EntitySet.get_or_create(noun_chunk)
-        entity_set.set_property(verb_chunk.text.replace(" ", "_"), adjective_chunk.text)
-        entity_set.save()
