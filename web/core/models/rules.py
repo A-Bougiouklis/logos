@@ -15,20 +15,25 @@ from web.core.models.entities import EntitySet, Entity
 
 RULE_CONFIDENCE_REDUCER = 10
 
+
 class Rule(StructuredNode):
-    ...
+    pattern = StringProperty(unique_index=True, required=True)
+    frequency = IntegerProperty(default=1)
+
+    @property
+    def confidence(self) -> float:
+        """
+        The confidence is related to how many times we have encountered the approximated
+        results in the training set.
+        """
+
+        return RULE_CONFIDENCE_REDUCER/self.frequency
 
 
-class ParentalRulePhraseNotEntitySetException(Exception):
+class NoSecondaryEntitySetException(Exception):
     """
-    Raised when we attempt to create a ParentalRule from a non EntitySet phrase.
-    """
-    ...
-
-
-class ParentalRuleNoSecondaryEntitySetException(Exception):
-    """
-    Raised when we attempt to create a ParentalRule from a non EntitySet phrase.
+    Raised when we attempt to create a ParentalRule from a sentence with less than 2
+    entity sets.
     """
     ...
 
@@ -49,10 +54,7 @@ class ParentalRule(Rule):
     sentence_pattern: Is generated out the sentence which made the system __approximate
     the parental relationship between entity sets
     """
-
-    sentence_pattern = StringProperty(unique_index=True, required=True)
     approximations = ArrayProperty(StringProperty(), required=True)
-    frequency = IntegerProperty(default=1)
 
     @classmethod
     def create_or_update(
@@ -125,7 +127,7 @@ class ParentalRule(Rule):
     ):
 
         if sentence_pattern.count("EntitySet") < 2:
-            raise ParentalRuleNoSecondaryEntitySetException
+            raise NoSecondaryEntitySetException
 
         return cls(
             approximations = cls.__approximations_for_phrases(entity_set_phrase, phrases),
@@ -186,15 +188,77 @@ class ParentalRule(Rule):
             self.frequency = 1
         self.save()
 
-    @property
-    def confidence(self) -> float:
-        """
-        The confidence is related to how many times we have encountered the approximated
-        results in the training set.
-        """
 
-        return RULE_CONFIDENCE_REDUCER/self.frequency
-
-
-class CommonProperiesRule(Rule):
+class SmallEntitySetException(Exception):
+    """
+    Raised when we attempt to create a CommonProperiesRule from an entity set with less
+    than 3 tokens.
+    """
     ...
+
+
+class NoCommonPropertiesException(Exception):
+    """
+    Raised when we attempt to create a CommonPropertiesRule without common properties
+    """
+    ...
+
+
+MINIMUM_FREQUENCY = 3
+
+
+class CommonPropertiesRule(Rule):
+    properties = ArrayProperty(StringProperty(), default=[])
+
+    @classmethod
+    def create_or_update(cls, es_phrase: Phrase) -> CommonPropertiesRule:
+
+        if len(es_phrase.span) < 3:
+            raise SmallEntitySetException
+
+        pattern = es_phrase.node.nodes.similar_entity_set_pattern(es_phrase.span)
+        if rule := cls.nodes.filter(pattern=pattern):
+            common = cls.__common_properties(es_phrase)
+            rule = rule[0]
+            rule.properties = common.keys()
+            rule.frequency = min(common.values())
+            rule.save()
+            return rule
+        else:
+            common = cls.__common_properties(es_phrase)
+
+            if not common:
+                raise NoCommonPropertiesException
+
+            return cls(
+                pattern=pattern,
+                properties=list(common.keys()),
+                frequency=min(common.values())
+            ).save()
+
+
+    @staticmethod
+    def __common_properties(es_phrase: Phrase) -> dict[str, int]:
+        """
+        Creates a frequency dictionary of common properties found in multiple similar
+        entity sets. We consider a property common when
+        its frequency >= MINIMUM_FREQUENCY.
+        """
+
+        similar = EntitySet.nodes.similar_entity_set_as(es_phrase.span)
+        similar.append(es_phrase.node)
+
+        common = {}
+
+        for es_index, es_1 in enumerate(similar):
+            for es_2 in similar[es_index + 1:]:
+                common_set = es_1.not_defined_properties_as_set.intersection(
+                    es_2.not_defined_properties_as_set
+                )
+                for common_property in common_set:
+                    if common.get(common_property):
+                        common[common_property] += 1
+                    else:
+                        common[common_property] = 1
+
+        return {key: f for key, f in common.items() if f >= MINIMUM_FREQUENCY}

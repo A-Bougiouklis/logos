@@ -41,7 +41,7 @@ class EntitySetTests(TestCase):
         dog_entity_set.set_property("ate", "a brisket")
         dog_entity_set.set_property("caught", "the ball")
 
-        self.assertEqual(
+        self.assertCountEqual(
             {"ate": ["some poop", "a brisket"], "caught": ["the ball"]},
             dog_entity_set.not_defined_properties
         )

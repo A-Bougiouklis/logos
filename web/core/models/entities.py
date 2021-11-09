@@ -115,14 +115,13 @@ class Entity(StructuredNode):
 class EntitySetNodeSet(NodeSet):
 
     @classmethod
-    def similar_entity_set_as(cls, entity_set_span: spacy_span):
+    def similar_entity_set_as(cls, entity_set_span: spacy_span) -> list:
+        """
+        We consider two entity sets similar if they share the same tokens except the
+        root token.
+        """
 
-        r = ""
-        for token in entity_set_span:
-            if token == entity_set_span.root:
-                r += "\s*[a-zA-z]*"
-            else:
-                r += f"\s*{token.text}"
+        r = cls.similar_entity_set_pattern(entity_set_span)
 
         results, _ = db.cypher_query(
             f"MATCH (e:EntitySet) "
@@ -133,13 +132,27 @@ class EntitySetNodeSet(NodeSet):
 
         return flatten(results)
 
+    @classmethod
+    def similar_entity_set_pattern(cls, entity_set_span: spacy_span) -> str:
+        """
+        The similar entity set pattern is a regex where the root can be matched by any
+        word while the rest of the tokens are matched by their text.
+        """
+
+        r = ""
+        for token in entity_set_span:
+            if token == entity_set_span.root:
+                r += "\s*[a-zA-z]*"
+            else:
+                r += f"\s*{token.text}"
+        return r
+
 
 class EntitySetRel(StructuredRel):
     confidence = FloatProperty()
 
 
 class EntitySet(Entity, SemiStructuredNode):
-
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
 
     @classproperty
