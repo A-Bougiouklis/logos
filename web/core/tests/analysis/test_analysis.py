@@ -34,8 +34,9 @@ class EntitySetTests(TestCase):
                 sentence = re.sub(r'[^\w\s]', '', sentence)
                 print(f"{index} out of {len(sentences)}")
                 cached_nodes = document_analysis(sentence, cached_nodes)
-            except:
-                ...
+            except Exception as e:
+                print("ERROR: ", e)
+
         print("Needed time to analyse : ", time.time() - s)
 
         # counter = []
