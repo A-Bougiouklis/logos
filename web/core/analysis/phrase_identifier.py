@@ -27,13 +27,21 @@ class Phrase:
             node: Union[Entity, EntitySet] = None,
     ):
         self.span = span
-        self.node_type = node_type
+        self.__node_type = node_type
         self.__verb_span = verb_chunk
         self.__adjective_chunk = adjective_chunk
         self.node = node
 
     def has_property(self):
         return self.verb_chunk and self.adjective_chunk
+
+    @property
+    def node_type(self):
+        # The node assigned into the phrase can overwrite the node_type.
+        if self.node:
+            return type(self.node)
+        else:
+            return self.__node_type
 
     @property
     def verb_chunk(self):
