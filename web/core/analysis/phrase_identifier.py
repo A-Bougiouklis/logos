@@ -38,14 +38,14 @@ class Phrase:
     @property
     def verb_chunk(self):
         if self.node_type == EntitySet:
-            return self.__verb_span
+            return self.__verb_span if self.__verb_span is not None else []
         else:
             raise EntitiesDoNotHaveAssignedChunks
 
     @property
     def adjective_chunk(self):
         if self.node_type == EntitySet:
-            return self.__adjective_chunk
+            return self.__adjective_chunk if self.__adjective_chunk is not None else []
         else:
             raise EntitiesDoNotHaveAssignedChunks
 
