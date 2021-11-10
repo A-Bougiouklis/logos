@@ -17,50 +17,12 @@ from spacy.tokens.span import Span as spacy_span
 from typing import Union
 
 
-class EntityRel(StructuredRel):
-    confidence = FloatProperty()
-
-
-class Entity(StructuredNode):
-    lemma = StringProperty(unique_index=True, required=True)
-    pos = ArrayProperty(StringProperty(), default=[])
-    shape = ArrayProperty(StringProperty(), default=[])
-
-    synosym = Relationship("Entity", "SYNONYM", model=EntityRel)
-    antonym = Relationship("Entity", "ANTONYM", model=EntityRel)
-
-    @classmethod
-    def get_or_create(cls, doc: spacy_token):
-        entity_node = cls.nodes.filter(lemma=doc.lemma_)
-        if not entity_node:
-            entity_node = cls(lemma=doc.lemma_, shape=[doc.shape_], pos=[doc.pos_]).save()
-        else:
-            entity_node = entity_node[0]
-            changed = False
-            if doc.pos_ not in entity_node.pos:
-                entity_node.pos.append(doc.pos_)
-                changed = True
-            if doc.shape_ not in entity_node.shape:
-                entity_node.shape.append(doc.shape_)
-                changed = True
-            if changed:
-                entity_node.save()
-        return entity_node
-
-
-class TokenRel(StructuredRel):
-    dependency = StringProperty()
-    sentence_id = IntegerProperty()
-    document_id = IntegerProperty()
-    order = IntegerProperty()
-
-
-class TokenNodeSet(NodeSet):
+class EntityNodeSet(NodeSet):
 
     @classmethod
     def __max_sentence_relationship_property(cls, property_name: str) -> int:
         results, _ = db.cypher_query(
-            f"MATCH (t:Token)-[r:SENTENCE]-(t2:Token) "
+            f"MATCH (:Entity)-[r:SENTENCE]-(:Entity) "
             f"return r.{property_name} "
             f"order by r.{property_name} DESC limit 1"
         )
@@ -75,82 +37,75 @@ class TokenNodeSet(NodeSet):
         return cls.__max_sentence_relationship_property("sentence_id")
 
 
-class Token(StructuredNode):
-    token = StringProperty(unique_index=True, required=True)
-    shape = StringProperty()
-
-    dependency = RelationshipTo("Token", "DEPENDENCY", model=TokenRel)
-    sentence = RelationshipTo("Token", "SENTENCE", model=TokenRel)
-
-    lemma = RelationshipTo(Entity, "LEMMA")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @classproperty
-    def nodes(cls):
-        return TokenNodeSet(cls)
-
-    @classmethod
-    def get_or_create(cls, doc: spacy_token):
-        token_node = cls.nodes.filter(token=doc.text)
-        if not token_node:
-            token_node = cls(token=doc.text, shape=doc.shape_).save()
-            entity = Entity.get_or_create(doc)
-            token_node.lemma.connect(entity)
-        else:
-            token_node = token_node[0]
-        return token_node
-
-
-class TokenToSetRel(StructuredRel):
+class EntityRel(StructuredRel):
     """
     order: The order of the token if the group includes multiple. For example if the
            the group token is "Boat" then the order is of the token "Boat" is 0.
            If the group tokens are "The Big Boat" then the order of "The" is 0, the
            order of "Big" is 1 and the order of "Boat" is "2".
     """
+
+    confidence = FloatProperty()
+    document_id = IntegerProperty()
+    sentence_id = IntegerProperty()
     order = IntegerProperty()
+
+
+class Entity(StructuredNode):
+    text = StringProperty(unique_index=True, required=True)
+    pos = ArrayProperty(StringProperty(), default=[])
+
+    parent = Relationship("Entity", "PARENT", model=EntityRel)
+    synonym = Relationship("Entity", "SYNONYM", model=EntityRel)
+    sentence = Relationship("Entity", "SENTENCE", model=EntityRel)
+
+    @classproperty
+    def nodes(cls):
+        return EntityNodeSet(cls)
+
+    @classmethod
+    def get_or_create(cls, span: Union[spacy_span, spacy_token]):
+        entity_node = cls.nodes.filter(text=span.text)
+        if not entity_node and isinstance(span, spacy_span):
+            entity_node = cls(text=span, pos=[span.root.pos_]).save()
+
+            # Create and link the parent of the entity.
+            if span.text != span.root.text:
+                root_entity_node = cls.get_or_create(span.root).save()
+                entity_node.parent.connect(root_entity_node)
+        elif not entity_node and isinstance(span, spacy_token):
+            entity_node = cls(text=span, pos=[span.pos_]).save()
+        else:
+            entity_node = entity_node[0]
+            new_pos = span.root.pos_ if isinstance(span, spacy_span) else span.pos_
+            if new_pos not in entity_node.pos:
+                entity_node.pos.append(new_pos)
+                entity_node.save()
+
+        cls.generate_synonyms(entity_node)
+        return entity_node
+
+    @classmethod
+    def generate_synonyms(cls, entity_node):
+        """
+        - Find all the synonyms for the given entity.
+        - Create new entity nodes for each entity that we haven't seen yet.
+        - Create a SYNONYM relationship between the given entity and its synonyms.
+        """
+        ...
 
 
 class EntitySetRel(StructuredRel):
     confidence = FloatProperty()
 
 
-class EntitySet(SemiStructuredNode):
-    name = StringProperty(unique_index=True, required=True)
+class EntitySet(Entity, SemiStructuredNode):
 
-    token = RelationshipTo("Token", "NAME", model=TokenToSetRel)
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
 
-    @classmethod
-    def get_or_create(cls, noun_chunk: Union[spacy_span, spacy_token]):
-
-        entity_set_node = cls.nodes.filter(name=noun_chunk.text)
-
-        if not entity_set_node:
-            entity_set_node = cls(name=noun_chunk.text).save()
-
-            if isinstance(noun_chunk, spacy_span) and noun_chunk.text != noun_chunk.root.text:
-                root_entity_set_node = cls.get_or_create(noun_chunk.root).save()
-                entity_set_node.parent.connect(root_entity_set_node)
-
-        else:
-            entity_set_node = entity_set_node[0]
-
-        # Creat the relationships between entitySet and token
-        try:
-            for index, token in enumerate(noun_chunk):
-                token_node = Token.get_or_create(token)
-                entity_set_node.token.connect(token_node, {"order": index})
-        # TypeError: if isinstance(noun_chunk, spacy_token) noun_chunk is not iterable
-        except TypeError:
-            token_node = Token.get_or_create(noun_chunk)
-            entity_set_node.token.connect(token_node, {"order": 0})
-
-        return entity_set_node
-
     def set_property(self, name: str, value: str):
+        name = name.replace(" ", "_")
+
         if hasattr(self, name):
             property = set(getattr(self, name))
             property.add(value)
