@@ -62,7 +62,7 @@ def ___is_adjective(token: Token, verb_chunk: Span, noun_chunk: Span) -> bool:
     """
     return (
             token.head in verb_chunk and
-            token.dep_ in ["xcomp", "acomp", "dobj", "agent",] and
+            token.dep_ in ["xcomp", "acomp", "dobj", "agent", "attr", "prep"] and
             not token in noun_chunk and
             not token in verb_chunk
     )

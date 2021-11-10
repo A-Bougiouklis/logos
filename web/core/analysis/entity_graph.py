@@ -1,5 +1,5 @@
 from core.analysis.phrase_identifier import Phrase
-from web.core.models import EntitySet, Entity
+from web.core.models.entities import Entity
 
 
 def generate_entity_graph(
@@ -7,8 +7,7 @@ def generate_entity_graph(
     doc_id: int,
     sent_id: int,
     cached_entities: dict[str, Entity],
-    cached_entity_sets: dict[str, EntitySet],
-) -> tuple[dict[str, Entity], dict[str, Entity]]:
+) -> tuple[dict[str, Entity], list[Phrase]]:
     """
     It analyse the given sentence by creating or updating the Entity nodes.
     """
@@ -17,17 +16,13 @@ def generate_entity_graph(
     while index < len(phrases):
 
         phrase = phrases[index]
-        entity_node, cached_entities, cached_entity_sets = __to_entity_node(
-            phrase, cached_entities, cached_entity_sets
-        )
+        phrase.node, cached_entities = __get_node(phrase, cached_entities)
 
         # Connect sentence relationships
         if next_phrase := phrases[index + 1] if index < len(phrases) - 1 else None:
-            next_entity_node, cached_entities, cached_entity_sets = __to_entity_node(
-            next_phrase, cached_entities, cached_entity_sets
-            )
-            entity_node.sentence.connect(
-                next_entity_node,
+            next_phrase.node, cached_entities = __get_node(next_phrase, cached_entities)
+            phrase.node.sentence.connect(
+                next_phrase.node,
                 {
                     "document_id": doc_id,
                     "sentence_id": sent_id,
@@ -37,30 +32,7 @@ def generate_entity_graph(
 
         index += 1
 
-    return cached_entities, cached_entity_sets
-
-
-def __to_entity_node(
-        phrase: Phrase,
-        cached_entities: dict[str, Entity],
-        cached_entity_sets: dict[str, EntitySet]
-) -> tuple[Entity, dict[str, Entity], dict[str, EntitySet]]:
-
-    if phrase.node_type == Entity:
-        entity_node, cached_entities = __get_node(phrase, cached_entities)
-    elif phrase.node_type == EntitySet:
-        entity_node, cached_entity_sets = __get_node(
-            phrase, cached_entity_sets
-        )
-        if phrase.has_property():
-            entity_node.set_property(
-                phrase.verb_chunk.text, phrase.adjective_chunk.text
-            )
-            entity_node.save()
-    else:
-        raise ValueError("Wrong node type assigned to phrase.")
-
-    return entity_node, cached_entities, cached_entity_sets
+    return cached_entities, phrases
 
 
 def __get_node(
@@ -69,6 +41,7 @@ def __get_node(
     node = cached_nodes.get(phrase.span.text)
     if node is None:
         node = phrase.node_type.get_or_create(phrase.span)
+        # TODO: Needs to placed somewhere else as it does not make sense here.
         node.generate_synonyms(phrase.span)
         cached_nodes[phrase.span.text] = node
     return node, cached_nodes

@@ -17,6 +17,8 @@ from spacy.tokens.span import Span as spacy_span
 from typing import Union
 from nltk.corpus import wordnet
 
+from core.utlis import flatten
+
 
 class EntityNodeSet(NodeSet):
 
@@ -110,20 +112,96 @@ class Entity(StructuredNode):
                     self.synonym.connect(synonym_node)
 
 
+class EntitySetNodeSet(NodeSet):
+
+    @classmethod
+    def similar_entity_set_as(cls, entity_set_span: spacy_span) -> list:
+        """
+        We consider two entity sets similar if they share the same tokens except the
+        root token.
+        """
+
+        r = cls.similar_entity_set_pattern(entity_set_span)
+
+        results, _ = db.cypher_query(
+            f"MATCH (e:EntitySet) "
+            f"WHERE e.text =~ '{r}' AND e.text <> '{entity_set_span.text}' "
+            f"return e",
+            resolve_objects=True
+        )
+
+        return flatten(results)
+
+    @classmethod
+    def similar_entity_set_pattern(cls, entity_set_span: spacy_span) -> str:
+        """
+        The similar entity set pattern is a regex where the root can be matched by any
+        word while the rest of the tokens are matched by their text.
+        """
+
+        r = ""
+        for token in entity_set_span:
+            if token == entity_set_span.root:
+                r += "\s*[a-zA-z]*"
+            else:
+                r += f"\s*{token.text}"
+        return r
+
+
 class EntitySetRel(StructuredRel):
     confidence = FloatProperty()
 
 
 class EntitySet(Entity, SemiStructuredNode):
-
     parent = RelationshipTo("EntitySet", "PARENT", model=EntitySetRel)
+
+    @classproperty
+    def nodes(cls):
+        return EntitySetNodeSet(cls)
+
+    @property
+    def not_defined_properties(self) -> dict[str, list[str]]:
+        return {
+            key: value
+            for key, value in self.__dict__.items()
+            if key not in ["parent", "sentence", "synonym", "text", "pos", "id"]
+        }
+
+    @property
+    def not_defined_properties_as_set(self) -> set[str]:
+        """
+        We convert the non defined properties to a set. We sort every list in order to
+        able to compare the inner elements with other sets.
+        """
+
+        not_defined_properties = self.not_defined_properties
+        result = set()
+        for key in sorted(not_defined_properties.keys()):
+            result.add(key + " : " + str(sorted(not_defined_properties[key])))
+        return result
+
+
+    def get_property(self, name: str) -> list[str]:
+        name = name.replace(" ", "_")
+        try:
+            return getattr(self, name)
+        except AttributeError:
+            return []
+
 
     def set_property(self, name: str, value: str):
         name = name.replace(" ", "_")
+        changed = False
 
         if hasattr(self, name):
-            property = set(getattr(self, name))
-            property.add(value)
-            setattr(self, name, list(property))
+            properties = set(getattr(self, name))
+            if value not in properties:
+                properties.add(value)
+                setattr(self, name, list(properties))
+                changed = True
         else:
             setattr(self, name, [value])
+            changed = True
+
+        if changed:
+            self.save()
