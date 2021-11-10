@@ -17,13 +17,13 @@ def generate_entity_graph(
     while index < len(phrases):
 
         phrase = phrases[index]
-        entity_node, cached_entities, cached_entity_sets = __get_entity_node(
+        entity_node, cached_entities, cached_entity_sets = __to_entity_node(
             phrase, cached_entities, cached_entity_sets
         )
 
         # Connect sentence relationships
         if next_phrase := phrases[index + 1] if index < len(phrases) - 1 else None:
-            next_entity_node, cached_entities, cached_entity_sets = __get_entity_node(
+            next_entity_node, cached_entities, cached_entity_sets = __to_entity_node(
             next_phrase, cached_entities, cached_entity_sets
             )
             entity_node.sentence.connect(
@@ -40,7 +40,7 @@ def generate_entity_graph(
     return cached_entities, cached_entity_sets
 
 
-def __get_entity_node(
+def __to_entity_node(
         phrase: Phrase,
         cached_entities: dict[str, Entity],
         cached_entity_sets: dict[str, EntitySet]
@@ -52,8 +52,11 @@ def __get_entity_node(
         entity_node, cached_entity_sets = __get_node(
             phrase, cached_entity_sets
         )
-        entity_node.set_property(phrase.verb_chunk.text, phrase.adjective_chunk.text)
-        entity_node.save()
+        if phrase.has_property():
+            entity_node.set_property(
+                phrase.verb_chunk.text, phrase.adjective_chunk.text
+            )
+            entity_node.save()
     else:
         raise ValueError("Wrong node type assigned to phrase.")
 
