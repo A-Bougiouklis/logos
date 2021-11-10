@@ -15,6 +15,7 @@ from neomodel import db
 from spacy.tokens import Token as spacy_token
 from spacy.tokens.span import Span as spacy_span
 from typing import Union
+from nltk.corpus import wordnet
 
 
 class EntityNodeSet(NodeSet):
@@ -55,9 +56,9 @@ class Entity(StructuredNode):
     text = StringProperty(unique_index=True, required=True)
     pos = ArrayProperty(StringProperty(), default=[])
 
-    parent = Relationship("Entity", "PARENT", model=EntityRel)
+    parent = RelationshipTo("Entity", "PARENT", model=EntityRel)
+    sentence = RelationshipTo("Entity", "SENTENCE", model=EntityRel)
     synonym = Relationship("Entity", "SYNONYM", model=EntityRel)
-    sentence = Relationship("Entity", "SENTENCE", model=EntityRel)
 
     @classproperty
     def nodes(cls):
@@ -65,34 +66,48 @@ class Entity(StructuredNode):
 
     @classmethod
     def get_or_create(cls, span: Union[spacy_span, spacy_token]):
-        entity_node = cls.nodes.filter(text=span.text)
-        if not entity_node and isinstance(span, spacy_span):
-            entity_node = cls(text=span, pos=[span.root.pos_]).save()
+        entity_nodes = cls.nodes.filter(text=span.text)
 
+        if not entity_nodes and isinstance(span, spacy_span):
+            entity_node = cls(text=span, pos=[span.root.pos_]).save()
             # Create and link the parent of the entity.
             if span.text != span.root.text:
                 root_entity_node = cls.get_or_create(span.root).save()
                 entity_node.parent.connect(root_entity_node)
-        elif not entity_node and isinstance(span, spacy_token):
+
+        elif not entity_nodes and isinstance(span, spacy_token):
             entity_node = cls(text=span, pos=[span.pos_]).save()
+
         else:
-            entity_node = entity_node[0]
+            entity_node = entity_nodes[0]
             new_pos = span.root.pos_ if isinstance(span, spacy_span) else span.pos_
             if new_pos not in entity_node.pos:
                 entity_node.pos.append(new_pos)
                 entity_node.save()
 
-        cls.generate_synonyms(entity_node)
         return entity_node
 
-    @classmethod
-    def generate_synonyms(cls, entity_node):
+    def generate_synonyms(self, span: Union[spacy_span, spacy_token]):
         """
         - Find all the synonyms for the given entity.
         - Create new entity nodes for each entity that we haven't seen yet.
         - Create a SYNONYM relationship between the given entity and its synonyms.
         """
-        ...
+
+        if isinstance(span, spacy_span):
+            text = "_".join([token.lemma_ for token in span])
+        elif isinstance(span, spacy_token):
+            text = span.lemma_
+        else:
+            raise ValueError("Unknown span type.")
+
+        for syn in wordnet.synsets(text):
+            for synonym_lemma in syn.lemmas():
+                synonym_lemma = synonym_lemma.name().replace("_", " ")
+                synonym_nodes = self.nodes.filter(text=synonym_lemma)
+                if synonym_nodes and synonym_lemma != span.text:
+                    synonym_node = synonym_nodes[0]
+                    self.synonym.connect(synonym_node)
 
 
 class EntitySetRel(StructuredRel):
