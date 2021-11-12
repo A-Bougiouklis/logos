@@ -8,8 +8,8 @@ from web.core.analysis.phrase_identifier import group_tokens_to_phrases
 
 class EntitySetNodeSetTests(TestCase):
 
-    # def setUp(self):
-    #     clear_neo4j_database(db)
+    def setUp(self):
+        clear_neo4j_database(db)
 
         doc = nlp("The big dog ate some poop.")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))

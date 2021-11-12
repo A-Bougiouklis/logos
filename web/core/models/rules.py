@@ -7,10 +7,8 @@ from neomodel import (
 )
 from core.utlis import flatten
 from dataclasses import dataclass
-from web.core.analysis.phrase_identifier import group_tokens_to_phrases
 
-
-from web.core.analysis.phrase_identifier import Phrase
+from web.core.analysis.phrase_identifier import Phrase, group_tokens_to_phrases
 from web.core.models.entities import EntitySet, Entity
 
 
