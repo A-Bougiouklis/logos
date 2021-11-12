@@ -40,7 +40,8 @@ def sentence_analysis(
         cached_nodes: dict[str, Entity],
 ) -> type[dict[str, Entity], dict[str, EntitySet]]:
 
-    phrases = group_tokens_to_phrases(sent, find_chunks(sent))
+    chunks = find_chunks(sent)
+    phrases = group_tokens_to_phrases(sent, chunks)
     cached_nodes, phrases = generate_entity_graph(phrases, doc_id, sent_id, cached_nodes)
     phrases, cached_nodes = property_setter(phrases, cached_nodes)
     update_rules(phrases, cached_nodes)
