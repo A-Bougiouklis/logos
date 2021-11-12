@@ -1,4 +1,4 @@
-from core.analysis.phrase_identifier import Phrase
+from web.core.analysis.phrase_identifier import Phrase
 from web.core.models.entities import Entity
 
 
@@ -9,7 +9,7 @@ def generate_entity_graph(
     cached_entities: dict[str, Entity],
 ) -> tuple[dict[str, Entity], list[Phrase]]:
     """
-    It analyse the given sentence by creating or updating the Entity nodes.
+    It analyses the given sentence by creating or updating the Entity nodes.
     """
 
     index = 0
@@ -41,7 +41,7 @@ def __get_node(
     node = cached_nodes.get(phrase.span.text)
     if node is None:
         node = phrase.node_type.get_or_create(phrase.span)
-        # TODO: Needs to placed somewhere else as it does not make sense here.
+        # TODO: Needs to be placed somewhere else as it does not make sense here.
         node.generate_synonyms(phrase.span)
         cached_nodes[phrase.span.text] = node
     return node, cached_nodes
