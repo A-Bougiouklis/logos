@@ -222,6 +222,13 @@ MINIMUM_FREQUENCY = 3
 
 
 class CommonPropertiesRule(Rule):
+    """
+    If two entity sets share the same tokens except the root, for example `the big dog` and `the big cat`,
+    and also have common properties, then we can assume that the shared properties derive from the shared tokens.
+    So when we find the same tokens in an entity set then we can automatically apply those properties.
+    For example the property `does not fit - in the small box` if it is shared in the above entity sets then we can assume
+    that every entity set with the tokens `the big X` has the mentioned property.
+    """
     properties = ArrayProperty(StringProperty(), default=[])
 
     @classmethod

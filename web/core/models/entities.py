@@ -105,6 +105,7 @@ class Entity(StructuredNode):
 
         for syn in wordnet.synsets(text):
             for synonym_lemma in syn.lemmas():
+                print(span, synonym_lemma)
                 synonym_lemma = synonym_lemma.name().replace("_", " ")
                 synonym_nodes = self.nodes.filter(text=synonym_lemma)
                 if synonym_nodes and synonym_lemma != span.text:

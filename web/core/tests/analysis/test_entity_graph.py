@@ -52,11 +52,16 @@ class GenerateEntityGraph(TestCase):
         self.entity_graph_asserts(phrases, 1, 2)
 
     def test_entity_graph_with_cache(self):
-        doc = nlp("the big dog ate some poop and then got away from the police.")
+        doc = nlp("the big dog ate some poop and then got away from the police")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         cached_entities, _ = generate_entity_graph(phrases, 1, 2, {})
 
-        doc = nlp("the big dog ate a cow.")
+        doc = nlp("the small dog barked really loud")
+        phrases = group_tokens_to_phrases(doc, find_chunks(doc))
+        _, phrases = generate_entity_graph(phrases, 2, 3, cached_entities)
+        self.entity_graph_asserts(phrases, 2, 3)
+
+        doc = nlp("hound slept on the pillow")
         phrases = group_tokens_to_phrases(doc, find_chunks(doc))
         _, phrases = generate_entity_graph(phrases, 2, 3, cached_entities)
         self.entity_graph_asserts(phrases, 2, 3)
